@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* set the defualt font family for the whole app */
-/* @layer base { */
-/*   * { */
-/*     font-family: "Inter_400Regular" !important; */
-/*   } */
-/* } */
+/* set the default font family for the whole app */
+/* @layer base {
+  * {
+    font-family: "Inter", sans-serif;
+  }
+} */

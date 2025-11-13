@@ -1,14 +1,58 @@
-// store/useWardStore.ts
+import { getWardById, getWards } from "@/services/wardService";
+import { Ward } from "@/types";
 import { create } from "zustand";
 
 type WardState = {
-  selectedWard: string | null;
-  selectedWards: string[];
-  selectWard: (ward: string) => void;
+  wards: Ward[];
+  selectedWard: Ward | null;
+  isLoading: boolean;
+  error: string | null;
+  fetchWards: () => Promise<void>;
+  selectWard: (wardId: string) => Promise<void>;
+  clearSelectedWard: () => void;
 };
 
-export const useWardStore = create<WardState>((set) => ({
+export const useWardStore = create<WardState>((set, get) => ({
+  wards: [],
   selectedWard: null,
-  selectedWards: [],
-  selectWard: (ward) => set({ selectedWard: ward }),
+  isLoading: false,
+  error: null,
+
+  fetchWards: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const wards = await getWards();
+      set({ wards, isLoading: false });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to fetch wards";
+      set({ error: errorMessage, isLoading: false });
+      throw error;
+    }
+  },
+
+  selectWard: async (wardId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      // First, try to find the ward in the already fetched wards
+      const { wards } = get();
+      const existingWard = wards.find((w) => w.id === wardId);
+
+      if (existingWard) {
+        // Use the ward we already have
+        set({ selectedWard: existingWard, isLoading: false });
+      } else {
+        // If not found, fetch it from the API
+        const ward = await getWardById(wardId);
+        set({ selectedWard: ward, isLoading: false });
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to select ward";
+      set({ error: errorMessage, isLoading: false });
+      throw error;
+    }
+  },
+
+  clearSelectedWard: () => set({ selectedWard: null }),
 }));

@@ -28,8 +28,12 @@ apiClient.interceptors.request.use(
     // Get token from configured getter
     const token = getAuthToken?.();
 
+    // TODO: check persistency then remove debug logs
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("🔑 Token attached to request:", config.url);
+    } else {
+      console.warn("⚠️  No token available for request:", config.url);
     }
 
     return config;

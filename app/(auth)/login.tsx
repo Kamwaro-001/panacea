@@ -36,8 +36,8 @@ export default function LoginScreen() {
   return (
     <Screen className="justify-center p-6" scrollable={true}>
       <View className="items-center mb-10">
-        {/* You can add your <Logo /> component here */}
-        <Text className="text-4xl font-sans-bold text-teal-600">Panacea</Text>
+        {/* TODO: Add logo */}
+        <Text className="text-4xl font-sans-bold text-teal-600">PANACEA</Text>
         <Text className="text-lg text-gray-600">Staff Access</Text>
       </View>
 
@@ -60,7 +60,7 @@ export default function LoginScreen() {
 
       <View className="mt-6">
         <Button
-          label={isLoading ? "Logging in..." : "Login Securely"}
+          label={isLoading ? "Logging in..." : "Login"}
           onPress={handleLogin}
           isLoading={isLoading}
         />

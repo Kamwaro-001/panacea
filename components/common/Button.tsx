@@ -1,21 +1,28 @@
 // components/common/Button.tsx
-import { Pressable, Text, ActivityIndicator } from "react-native";
-
-// No 'styled' import needed!
+import { ActivityIndicator, Pressable, Text } from "react-native";
 
 interface ButtonProps {
   label: string;
   onPress: () => void;
   isLoading?: boolean;
+  disabled?: boolean;
 }
 
-export function Button({ label, onPress, isLoading = false }: ButtonProps) {
+export function Button({
+  label,
+  onPress,
+  isLoading = false,
+  disabled = false,
+}: ButtonProps) {
+  const isDisabled = isLoading || disabled;
+
   return (
-    // Just use the standard <Pressable> component
     <Pressable
-      className="w-full h-14 bg-teal-600 rounded-lg items-center justify-center active:bg-teal-700"
+      className={`w-full h-10 rounded-lg items-center justify-center ${
+        isDisabled ? "bg-gray-400" : "bg-teal-600 active:bg-teal-700"
+      }`}
       onPress={onPress}
-      disabled={isLoading}
+      disabled={isDisabled}
     >
       {isLoading ? (
         <ActivityIndicator color="white" />

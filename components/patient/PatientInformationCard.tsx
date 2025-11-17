@@ -32,8 +32,6 @@ export function PatientInformationCard({
     { label: "Ward", value: patient.ward.name },
     { label: "Bed Number", value: patient.bedNumber },
     { label: "Diagnosis", value: patient.diagnosis },
-    // TODO: remove duplicate line
-    { label: "Attending Doctor", value: "Dr. Test" },
     patient.attendingDoctor && {
       label: "Attending Doctor",
       value: patient.attendingDoctor.name,

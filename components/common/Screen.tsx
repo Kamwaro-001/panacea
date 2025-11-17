@@ -1,5 +1,5 @@
 // components/common/Screen.tsx
-import { View, ScrollView, ViewProps } from "react-native";
+import { ScrollView, View, ViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ScreenProps extends ViewProps {
@@ -17,11 +17,6 @@ export function Screen({
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
 
-  const Container = scrollable ? ScrollView : View;
-  const containerProps = scrollable
-    ? { contentContainerStyle: { flexGrow: 1 } }
-    : { style: { flex: 1 } };
-
   // Conditionally build the className for the inner view
   const innerViewClassName = `
     flex-1
@@ -29,10 +24,28 @@ export function Screen({
     ${className || ""}
   `;
 
+  if (scrollable) {
+    return (
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        className="flex-1 bg-gray-50"
+        style={{
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+        }}
+      >
+        <View className={innerViewClassName.trim()} {...props}>
+          {children}
+        </View>
+      </ScrollView>
+    );
+  }
+
   return (
-    <Container
-      {...containerProps}
-      className="bg-gray-50"
+    <View
+      className="flex-1 bg-gray-50"
       style={{
         paddingTop: insets.top,
         paddingBottom: insets.bottom,
@@ -43,6 +56,6 @@ export function Screen({
       <View className={innerViewClassName.trim()} {...props}>
         {children}
       </View>
-    </Container>
+    </View>
   );
 }

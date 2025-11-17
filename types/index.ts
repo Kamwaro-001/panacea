@@ -65,3 +65,43 @@ export interface LoginCredentials {
   staffId: string;
   password: string;
 }
+
+// barcodes
+export interface Barcode {
+  id: string;
+  barcodeIdString: string;
+  status: "active" | "archived";
+  patientId: string;
+}
+
+// link Barcode
+export interface LinkBarcodePayload {
+  barcodeString: string;
+  patientId: string;
+}
+
+// API Error Response
+export interface ApiError {
+  message: string;
+  errorCode?: string;
+}
+
+// scanning a barcode should return an object with patient info and active medication orders
+export interface ScannedBarcodeResponse {
+  patient: PatientProfile;
+  activeOrders: MedicationOrder[];
+}
+
+// vitals recording
+export interface VitalsData {
+  bp: string; // Blood Pressure (e.g., "120/80")
+  hr: string; // Heart Rate (bpm)
+  temp: string; // Temperature (°C or °F)
+  spo2: string; // Oxygen Saturation (%)
+  painScore: string; // Pain Score (0-10)
+}
+
+export interface RecordAdministrationPayload {
+  patientId: string;
+  vitals: VitalsData;
+}

@@ -84,7 +84,7 @@ export default function WardSelectScreen() {
               key={ward.id}
               onPress={() => setSelected(ward.id)}
               className={`
-                w-full p-6 border rounded-lg
+                w-full p-6 border rounded-lg 
                 ${selected === ward.id ? "bg-teal-100 border-teal-600" : "bg-white border-gray-300"}
               `}
             >

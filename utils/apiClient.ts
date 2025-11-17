@@ -57,10 +57,9 @@ apiClient.interceptors.response.use(
         );
       }
 
-      // Server responded with error status
-      const message =
-        (error.response.data as any)?.message || "An error occurred";
-      return Promise.reject(new Error(message));
+      // For other errors, preserve the original Axios error structure
+      // so that services can access error.response.data for errorCode
+      return Promise.reject(error);
     } else if (error.request) {
       // Request was made but no response received
       return Promise.reject(

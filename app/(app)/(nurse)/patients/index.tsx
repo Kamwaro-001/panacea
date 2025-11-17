@@ -86,10 +86,10 @@ export default function PatientsScreen() {
       </Text>
 
       {/* Search Bar */}
-      <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-3 mb-6">
+      <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-1 mb-6 border border-gray-200">
         <Feather name="search" size={20} color="#9CA3AF" />
         <TextInput
-          className="flex-1 ml-3 text-base"
+          className="flex-1 ml-3 text-base py-1"
           placeholder="Search patient name or bed number"
           value={searchQuery}
           onChangeText={setSearchQuery}

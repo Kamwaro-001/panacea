@@ -66,63 +66,67 @@ export default function WardSelectScreen() {
   }
 
   return (
-    <Screen>
-      <View className="flex-1 justify-center">
-        <Text className="text-3xl font-sans-bold text-center mb-4">
-          Select Your Ward
-        </Text>
-
-        {selectedWard && (
-          <Text className="text-sm text-gray-600 text-center mb-6">
-            Currently in: <Text className="font-bold">{selectedWard.name}</Text>
+    <>
+      <Screen>
+        <View className="flex-1 justify-center">
+          <Text className="text-3xl font-sans-bold text-center mb-4">
+            Select Your Ward
           </Text>
-        )}
 
-        <View className="space-y-3">
-          {wards.map((ward) => (
-            <Pressable
-              key={ward.id}
-              onPress={() => setSelected(ward.id)}
-              className={`
+          {selectedWard && (
+            <Text className="text-sm text-gray-600 text-center mb-6">
+              Currently in:{" "}
+              <Text className="font-bold">{selectedWard.name}</Text>
+            </Text>
+          )}
+
+          <View>
+            {wards.map((ward, index) => (
+              <Pressable
+                key={ward.id}
+                onPress={() => setSelected(ward.id)}
+                className={`
                 w-full p-6 border rounded-lg 
                 ${selected === ward.id ? "bg-teal-100 border-teal-600" : "bg-white border-gray-300"}
+                ${index > 0 ? "mt-3" : ""}
               `}
-            >
-              <Text className="text-lg font-sans-bold">{ward.name}</Text>
-              {ward.description && (
-                <Text className="text-sm text-gray-600 mt-1">
-                  {ward.description}
-                </Text>
-              )}
-            </Pressable>
-          ))}
-        </View>
+              >
+                <Text className="text-lg font-sans-bold">{ward.name}</Text>
+                {ward.description && (
+                  <Text className="text-sm text-gray-600 mt-1">
+                    {ward.description}
+                  </Text>
+                )}
+              </Pressable>
+            ))}
+          </View>
 
-        {wards.length === 0 && (
-          <Text className="text-center text-gray-600 mt-4">
-            No wards available
-          </Text>
-        )}
-
-        <View className="mt-10 space-y-3">
-          <Button
-            label="Confirm Ward"
-            onPress={handleConfirm}
-            isLoading={isSelecting}
-            disabled={!selected}
-          />
-          {selectedWard && (
-            <Pressable
-              onPress={handleCancel}
-              className="py-2 bg-gray-200 rounded-lg active:bg-gray-300"
-            >
-              <Text className="text-center text-gray-700 text-base">
-                Cancel
-              </Text>
-            </Pressable>
+          {wards.length === 0 && (
+            <Text className="text-center text-gray-600 mt-4">
+              No wards available
+            </Text>
           )}
+
+          <View className="mt-10">
+            <Button
+              label="Confirm Ward"
+              onPress={handleConfirm}
+              isLoading={isSelecting}
+              disabled={!selected}
+            />
+            {selectedWard && (
+              <Pressable
+                onPress={handleCancel}
+                className="py-2 bg-gray-200 rounded-lg active:bg-gray-300 mt-3"
+              >
+                <Text className="text-center text-gray-700 text-base">
+                  Cancel
+                </Text>
+              </Pressable>
+            )}
+          </View>
         </View>
-      </View>
-    </Screen>
+      </Screen>
+    </>
   );
 }

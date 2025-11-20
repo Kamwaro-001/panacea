@@ -9,7 +9,15 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to scan patient wristband barcodes for medication administration."
+      }
+      // "infoPlist": {
+      //   "NSAppTransportSecurity": {
+      //     "NSAllowsArbitraryLoads": true
+      //   }
+      // }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,6 +26,7 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "permissions": ["CAMERA"],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },

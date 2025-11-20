@@ -4,8 +4,13 @@ import { Screen } from "@/components/common/Screen";
 import { BarcodeError, barcodeService } from "@/services/barcodeService";
 import { showAlert, showSimpleAlert } from "@/utils/alert";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  BarcodeScanningResult,
+  CameraView,
+  useCameraPermissions,
+} from "expo-camera";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
 export default function ScanScreen() {
@@ -14,6 +19,24 @@ export default function ScanScreen() {
 
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+  const scanningRef = useRef(false);
+
+  const handleBarcodeScanned = async (result: BarcodeScanningResult) => {
+    // Prevent multiple scans while processing
+    if (scanningRef.current) return;
+
+    scanningRef.current = true;
+    const barcodeString = result.data;
+
+    await handleScanBarcode(barcodeString);
+
+    // Reset after a delay to allow for navigation
+    setTimeout(() => {
+      scanningRef.current = false;
+    }, 2000);
+  };
 
   const handleScanBarcode = async (barcodeString: string) => {
     if (!barcodeString.trim()) {
@@ -26,6 +49,8 @@ export default function ScanScreen() {
 
     try {
       const data = await barcodeService.scanBarcode(barcodeString);
+      // Close camera before navigation
+      setIsCameraActive(false);
       // Navigate to verify page with scanned data
       router.push({
         pathname: "/scan/verify",
@@ -127,7 +152,7 @@ export default function ScanScreen() {
           />
         </View>
 
-        {/* Camera Scan Section - To be implemented */}
+        {/* Camera Scan Section */}
         <View className="bg-white rounded-lg p-6 mb-6 shadow-sm">
           <View className="flex-row items-center mb-4">
             <MaterialCommunityIcons
@@ -139,18 +164,74 @@ export default function ScanScreen() {
               Barcode Scanner
             </Text>
           </View>
-          <View className="items-center py-8 bg-gray-50 rounded-lg">
-            <MaterialCommunityIcons name="camera" size={64} color="#9CA3AF" />
-            <Text className="text-gray-500 mt-4 text-center">
-              Camera barcode scanning
-            </Text>
-            <Text className="text-gray-400 text-sm text-center mt-1">
-              (Supports Code128/QR codes)
-            </Text>
-            <Text className="text-gray-400 text-sm text-center mt-1">
-              To be implemented
-            </Text>
-          </View>
+
+          {!permission ? (
+            <View className="items-center py-8 bg-gray-50 rounded-lg">
+              <ActivityIndicator size="small" color="#14B8A6" />
+              <Text className="text-gray-500 mt-4 text-center">
+                Loading camera...
+              </Text>
+            </View>
+          ) : !permission.granted ? (
+            <View className="items-center py-8 bg-gray-50 rounded-lg">
+              <MaterialCommunityIcons
+                name="camera-off"
+                size={64}
+                color="#9CA3AF"
+              />
+              <Text className="text-gray-600 mt-4 text-center font-semibold">
+                Camera Permission Required
+              </Text>
+              <Text className="text-gray-500 text-sm text-center mt-2 mb-4">
+                Allow camera access to scan barcodes
+              </Text>
+              <Button label="Grant Permission" onPress={requestPermission} />
+            </View>
+          ) : !isCameraActive ? (
+            <View className="items-center py-8 bg-gray-50 rounded-lg">
+              <MaterialCommunityIcons name="camera" size={64} color="#14B8A6" />
+              <Text className="text-gray-600 mt-4 text-center font-semibold">
+                Ready to Scan
+              </Text>
+              <Text className="text-gray-500 text-sm text-center mt-2 mb-4">
+                Supports Code128 and QR codes
+              </Text>
+              <Button
+                label="Open Camera"
+                onPress={() => {
+                  setError(null);
+                  setIsCameraActive(true);
+                }}
+              />
+            </View>
+          ) : (
+            <View className="overflow-hidden rounded-lg">
+              <View className="aspect-[4/3] bg-black">
+                <CameraView
+                  style={{ flex: 1 }}
+                  facing="back"
+                  barcodeScannerSettings={{
+                    barcodeTypes: ["qr", "code128"],
+                  }}
+                  onBarcodeScanned={handleBarcodeScanned}
+                >
+                  {/* Scanning overlay */}
+                  <View className="flex-1 justify-center items-center">
+                    <View className="border-2 border-teal-400 rounded-lg w-64 h-48" />
+                    <Text className="text-white text-center mt-4 bg-black/50 px-4 py-2 rounded-lg">
+                      Position barcode within frame
+                    </Text>
+                  </View>
+                </CameraView>
+              </View>
+              <View className="bg-gray-100 p-4">
+                <Button
+                  label="Close Camera"
+                  onPress={() => setIsCameraActive(false)}
+                />
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Error Message */}

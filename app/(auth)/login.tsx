@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/stores/useAuthStore";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Alert, Text, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Text, View } from "react-native";
 import { Button } from "../../components/common/Button";
 import { Input } from "../../components/common/Input";
 import { Screen } from "../../components/common/Screen";
@@ -35,36 +35,38 @@ export default function LoginScreen() {
 
   return (
     <Screen className="justify-center p-6" scrollable={true}>
-      <View className="items-center mb-10">
-        {/* TODO: Add logo */}
-        <Text className="text-4xl font-sans-bold text-teal-600">PANACEA</Text>
-        <Text className="text-lg text-gray-600">Staff Access</Text>
-      </View>
+      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={100}>
+        <View className="items-center mb-10">
+          {/* TODO: Add logo */}
+          <Text className="text-4xl font-sans-bold text-teal-600">PANACEA</Text>
+          <Text className="text-lg text-gray-600">Staff Access</Text>
+        </View>
 
-      <Input
-        label="Staff ID"
-        placeholder="Enter your staff ID"
-        value={staffId}
-        onChangeText={setStaffId}
-        autoCapitalize="none"
-      />
-
-      <Input
-        label="PIN"
-        placeholder="Enter your PIN"
-        value={pin}
-        onChangeText={setPin}
-        secureTextEntry
-        keyboardType="numeric"
-      />
-
-      <View className="mt-6">
-        <Button
-          label={isLoading ? "Logging in..." : "Login"}
-          onPress={handleLogin}
-          isLoading={isLoading}
+        <Input
+          label="Staff ID"
+          placeholder="Enter your staff ID"
+          value={staffId}
+          onChangeText={setStaffId}
+          autoCapitalize="none"
         />
-      </View>
+
+        <Input
+          label="PIN"
+          placeholder="Enter your PIN"
+          value={pin}
+          onChangeText={setPin}
+          secureTextEntry
+          keyboardType="numeric"
+        />
+
+        <View className="mt-6">
+          <Button
+            label={isLoading ? "Logging in..." : "Login"}
+            onPress={handleLogin}
+            isLoading={isLoading}
+          />
+        </View>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

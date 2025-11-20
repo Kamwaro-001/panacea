@@ -11,51 +11,42 @@ interface ScreenProps extends ViewProps {
 export function Screen({
   children,
   scrollable = false,
-  noPadding = false, // Default to false (padding)
-  className, // Explicitly pull out className
+  noPadding = false,
+  className,
   ...props
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
 
-  // Conditionally build the className for the inner view
-  const innerViewClassName = `
-    flex-1
-    ${noPadding ? "" : "p-6"} 
-    ${className || ""}
-  `;
+  const innerViewClassName =
+    `flex-1 ${noPadding ? "" : "p-6"} ${className || ""}`.trim();
 
-  if (scrollable) {
-    return (
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        className="flex-1 bg-gray-50"
-        style={{
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
-          paddingLeft: insets.left,
-          paddingRight: insets.right,
-        }}
-      >
-        <View className={innerViewClassName.trim()} {...props}>
-          {children}
-        </View>
-      </ScrollView>
-    );
-  }
+  const safeAreaStyle = {
+    paddingTop: insets.top,
+    paddingBottom: insets.bottom,
+    paddingLeft: insets.left,
+    paddingRight: insets.right,
+  };
+
+  const content = (
+    <View className={innerViewClassName} {...props}>
+      {children}
+    </View>
+  );
+
+  const Container = scrollable ? ScrollView : View;
+  const containerProps = scrollable
+    ? { contentContainerStyle: { flexGrow: 1 } }
+    : {};
 
   return (
-    <View
-      className="flex-1 bg-gray-50"
-      style={{
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-        paddingLeft: insets.left,
-        paddingRight: insets.right,
-      }}
-    >
-      <View className={innerViewClassName.trim()} {...props}>
-        {children}
-      </View>
-    </View>
+    <>
+      <Container
+        className="flex-1 bg-gray-50"
+        style={safeAreaStyle}
+        {...containerProps}
+      >
+        {content}
+      </Container>
+    </>
   );
 }

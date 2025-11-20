@@ -6,7 +6,8 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { SplashScreen, Stack } from "expo-router";
-import { useEffect, useState } from "react";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
 
@@ -31,6 +32,8 @@ export default function RootLayout() {
   }
   return (
     <SafeAreaProvider>
+      <StatusBar style="dark" />
+
       <Stack screenOptions={{ headerShown: false }}>
         {/* Routes will be automatically discovered */}
       </Stack>

@@ -5,6 +5,7 @@ import { PatientInformationCard } from "@/components/patient/PatientInformationC
 import { useOrderStore } from "@/stores/useOrderStore";
 import { usePatientStore } from "@/stores/usePatientStore";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
@@ -68,7 +69,11 @@ export default function PatientProfileScreen() {
           {selectedPatient.photo ? (
             <View className="w-24 h-24 rounded-full bg-gray-200">
               {/* TODO: Add Image component when photo URL is available */}
-              <Text className="text-xs text-center mt-10">Photo</Text>
+              {/* <Text className="text-xs text-center mt-10">Photo</Text> */}
+              <Image
+                source={selectedPatient.photo}
+                className="w-24 h-24 rounded-full"
+              />
             </View>
           ) : (
             <View className="w-24 h-24 rounded-full bg-teal-100 items-center justify-center">

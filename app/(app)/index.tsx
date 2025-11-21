@@ -1,11 +1,13 @@
 import { Redirect } from "expo-router";
-import { useAuthStore } from "../../stores/useAuthStore";
-import { useWardStore } from "../../stores/useWardStore";
 import { Loading } from "../../components/common/Loading";
+import { useAuthStore } from "../../stores/useAuthStore";
+import { useDoctorWardStore } from "../../stores/useDoctorWardStore";
+import { useWardStore } from "../../stores/useWardStore";
 
 export default function AppGatekeeper() {
   const { user } = useAuthStore();
   const { selectedWard } = useWardStore();
+  const { selectedWards } = useDoctorWardStore();
 
   if (!user) {
     // Auth store isn't loaded? Or user is invalid. Back to login.
@@ -25,10 +27,15 @@ export default function AppGatekeeper() {
     return <Redirect href="/(app)/(nurse)" />;
   }
 
-  // if (role === "doctor") {
-  //   return <Redirect href="/(app)/(doctor)" />;
-  // }
-  //
+  if (role === "doctor" || role === "consultant") {
+    if (selectedWards.length === 0) {
+      // Doctor, but no wards? Go to ward-select.
+      return <Redirect href="/(app)/ward-select" />;
+    }
+    // Doctor with wards? Go to doctor dashboard.
+    return <Redirect href={"/(app)/(doctor)" as any} />;
+  }
+
   // if (role === "admin") {
   //   return <Redirect href="/(app)/(admin)" />;
   // }

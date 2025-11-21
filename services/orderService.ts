@@ -16,3 +16,16 @@ export const createOrder = async (
   const response = await apiClient.post("/orders", orderData);
   return response.data;
 };
+
+export const updateOrder = async (
+  orderId: string,
+  orderData: Partial<MedicationOrder>
+): Promise<MedicationOrder> => {
+  const response = await apiClient.put(`/orders/${orderId}`, orderData);
+  return response.data;
+};
+
+export const stopOrder = async (orderId: string): Promise<MedicationOrder> => {
+  const response = await apiClient.post(`/orders/stop/${orderId}`);
+  return response.data;
+};

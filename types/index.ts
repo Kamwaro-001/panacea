@@ -55,7 +55,7 @@ export interface MedicationOrder {
   startTime: Date;
   endTime?: Date;
   status: OrderStatus;
-  prescriber: Pick<UserProfile, "id" | "name" | "role">;
+  // prescriber: Pick<UserProfile, "id" | "name" | "role">;
   // createdAt: Date;
   // updatedAt: Date;
 }
@@ -92,6 +92,7 @@ export interface ScannedBarcodeResponse {
   activeOrders: MedicationOrder[];
 }
 
+// TODO: change to the new property names
 // vitals recording
 export interface VitalsData {
   bp: string; // Blood Pressure (e.g., "120/80")

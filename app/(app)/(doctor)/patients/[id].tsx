@@ -17,7 +17,9 @@ import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -348,64 +350,72 @@ export default function DoctorPatientDetailScreen() {
         transparent={true}
         onRequestClose={() => setShowAddModal(false)}
       >
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6 max-h-[90%]">
-            <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-xl font-bold text-gray-900">
-                Add Medication Order
-              </Text>
-              <Pressable onPress={() => setShowAddModal(false)}>
-                <Feather name="x" size={24} color="#6B7280" />
-              </Pressable>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Input
-                label="Drug"
-                value={formData.drug}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, drug: text })
-                }
-                placeholder="Enter drug name"
-              />
-
-              <Input
-                label="Dose"
-                value={formData.dose}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, dose: text })
-                }
-                placeholder="e.g., 500mg"
-              />
-
-              <Input
-                label="Route"
-                value={formData.route}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, route: text })
-                }
-                placeholder="e.g., PO, IV, IM"
-              />
-
-              <Input
-                label="Frequency"
-                value={formData.frequency}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, frequency: text })
-                }
-                placeholder="e.g., BID, TID, QID"
-              />
-
-              <View className="mt-6">
-                <Button
-                  label="Save"
-                  onPress={handleSaveNew}
-                  isLoading={isSaving}
-                />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1"
+        >
+          <View className="flex-1 bg-black/50 justify-end">
+            <View className="bg-white rounded-t-3xl p-6 max-h-[90%]">
+              <View className="flex-row justify-between items-center mb-6">
+                <Text className="text-xl font-bold text-gray-900">
+                  Add Medication Order
+                </Text>
+                <Pressable onPress={() => setShowAddModal(false)}>
+                  <Feather name="x" size={24} color="#6B7280" />
+                </Pressable>
               </View>
-            </ScrollView>
+
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                <Input
+                  label="Drug"
+                  value={formData.drug}
+                  onChangeText={(text) =>
+                    setFormData({ ...formData, drug: text })
+                  }
+                  placeholder="Enter drug name"
+                />
+
+                <Input
+                  label="Dose"
+                  value={formData.dose}
+                  onChangeText={(text) =>
+                    setFormData({ ...formData, dose: text })
+                  }
+                  placeholder="e.g., 500mg"
+                />
+
+                <Input
+                  label="Route"
+                  value={formData.route}
+                  onChangeText={(text) =>
+                    setFormData({ ...formData, route: text })
+                  }
+                  placeholder="e.g., PO, IV, IM"
+                />
+
+                <Input
+                  label="Frequency"
+                  value={formData.frequency}
+                  onChangeText={(text) =>
+                    setFormData({ ...formData, frequency: text })
+                  }
+                  placeholder="e.g., BID, TID, QID"
+                />
+
+                <View className="mt-6">
+                  <Button
+                    label="Save"
+                    onPress={handleSaveNew}
+                    isLoading={isSaving}
+                  />
+                </View>
+              </ScrollView>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Edit Order Modal */}
@@ -415,64 +425,72 @@ export default function DoctorPatientDetailScreen() {
         transparent={true}
         onRequestClose={() => setShowEditModal(false)}
       >
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6 max-h-[90%]">
-            <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-xl font-bold text-gray-900">
-                Edit Medication Order
-              </Text>
-              <Pressable onPress={() => setShowEditModal(false)}>
-                <Feather name="x" size={24} color="#6B7280" />
-              </Pressable>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Input
-                label="Drug"
-                value={formData.drug}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, drug: text })
-                }
-                placeholder="Enter drug name"
-              />
-
-              <Input
-                label="Dose"
-                value={formData.dose}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, dose: text })
-                }
-                placeholder="e.g., 500mg"
-              />
-
-              <Input
-                label="Route"
-                value={formData.route}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, route: text })
-                }
-                placeholder="e.g., PO, IV, IM"
-              />
-
-              <Input
-                label="Frequency"
-                value={formData.frequency}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, frequency: text })
-                }
-                placeholder="e.g., BID, TID, QID"
-              />
-
-              <View className="mt-6">
-                <Button
-                  label="Update"
-                  onPress={handleSaveEdit}
-                  isLoading={isSaving}
-                />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1"
+        >
+          <View className="flex-1 bg-black/50 justify-end">
+            <View className="bg-white rounded-t-3xl p-6 max-h-[90%]">
+              <View className="flex-row justify-between items-center mb-6">
+                <Text className="text-xl font-bold text-gray-900">
+                  Edit Medication Order
+                </Text>
+                <Pressable onPress={() => setShowEditModal(false)}>
+                  <Feather name="x" size={24} color="#6B7280" />
+                </Pressable>
               </View>
-            </ScrollView>
+
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                <Input
+                  label="Drug"
+                  value={formData.drug}
+                  onChangeText={(text) =>
+                    setFormData({ ...formData, drug: text })
+                  }
+                  placeholder="Enter drug name"
+                />
+
+                <Input
+                  label="Dose"
+                  value={formData.dose}
+                  onChangeText={(text) =>
+                    setFormData({ ...formData, dose: text })
+                  }
+                  placeholder="e.g., 500mg"
+                />
+
+                <Input
+                  label="Route"
+                  value={formData.route}
+                  onChangeText={(text) =>
+                    setFormData({ ...formData, route: text })
+                  }
+                  placeholder="e.g., PO, IV, IM"
+                />
+
+                <Input
+                  label="Frequency"
+                  value={formData.frequency}
+                  onChangeText={(text) =>
+                    setFormData({ ...formData, frequency: text })
+                  }
+                  placeholder="e.g., BID, TID, QID"
+                />
+
+                <View className="mt-6">
+                  <Button
+                    label="Update"
+                    onPress={handleSaveEdit}
+                    isLoading={isSaving}
+                  />
+                </View>
+              </ScrollView>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );

@@ -22,16 +22,8 @@ export const usePatientStore = create<PatientState>((set, get) => ({
   fetchPatientsByWard: async (wardId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const newPatients = await getPatientsByWard(wardId);
-      const { patients: existingPatients } = get();
-      // Append new patients, avoiding duplicates by ID
-      const updatedPatients = [...existingPatients];
-      newPatients.forEach((newPatient) => {
-        if (!updatedPatients.some((p) => p.id === newPatient.id)) {
-          updatedPatients.push(newPatient);
-        }
-      });
-      set({ patients: updatedPatients, isLoading: false });
+      const patients = await getPatientsByWard(wardId);
+      set({ patients, isLoading: false });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to fetch patients";

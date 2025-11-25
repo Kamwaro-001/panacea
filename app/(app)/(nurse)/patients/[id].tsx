@@ -68,8 +68,6 @@ export default function PatientProfileScreen() {
         <View className="items-center mb-6">
           {selectedPatient.photo ? (
             <View className="w-24 h-24 rounded-full bg-gray-200">
-              {/* TODO: Add Image component when photo URL is available */}
-              {/* <Text className="text-xs text-center mt-10">Photo</Text> */}
               <Image
                 source={selectedPatient.photo}
                 className="w-24 h-24 rounded-full"

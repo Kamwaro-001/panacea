@@ -36,9 +36,9 @@ export default function AppGatekeeper() {
     return <Redirect href={"/(app)/(doctor)" as any} />;
   }
 
-  // if (role === "admin") {
-  //   return <Redirect href="/(app)/(admin)" />;
-  // }
+  if (role === "admin") {
+    return <Redirect href="/(app)/(admin)" />;
+  }
 
   // Fallback in case of an unknown role
   return <Loading />;

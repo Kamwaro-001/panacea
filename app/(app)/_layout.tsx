@@ -17,7 +17,7 @@ export default function AppLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="(nurse)" />
       <Stack.Screen name="(doctor)" />
-      {/* <Stack.Screen name="(admin)" /> */}
+      <Stack.Screen name="(admin)" />
 
       {/* We make ward-select a modal for a cleaner UI flow */}
       <Stack.Screen name="ward-select" options={{ presentation: "modal" }} />

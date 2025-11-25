@@ -144,29 +144,34 @@ export default function DoctorPatientsScreen() {
   }
 
   return (
-    <Screen className="px-4 pt-6">
-      {/* Title */}
-      <Text className="text-2xl font-bold text-center mb-2">My Patients</Text>
-      <Text className="text-sm text-gray-600 text-center mb-4">
-        {selectedWards.length} ward{selectedWards.length !== 1 ? "s" : ""}{" "}
-        selected
-      </Text>
-
-      {/* Search Bar */}
-      <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-1 mb-4 border border-gray-200">
-        <Feather name="search" size={20} color="#9CA3AF" />
-        <TextInput
-          className="flex-1 ml-3 text-base py-1"
-          placeholder="Search patient name or bed number"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      {/* Patients List Grouped by Ward */}
+    <Screen className="pt-6" noPadding>
       <FlatList
         data={filteredPatientsByWard}
         keyExtractor={(ward) => ward.wardId}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+        ListHeaderComponent={
+          <>
+            {/* Title */}
+            <Text className="text-2xl font-bold text-center mb-2">
+              My Patients
+            </Text>
+            <Text className="text-sm text-gray-600 text-center mb-4">
+              {selectedWards.length} ward{selectedWards.length !== 1 ? "s" : ""}{" "}
+              selected
+            </Text>
+
+            {/* Search Bar */}
+            <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-1 mb-4 border border-gray-200">
+              <Feather name="search" size={20} color="#9CA3AF" />
+              <TextInput
+                className="flex-1 ml-3 text-base py-1"
+                placeholder="Search patient name or bed number"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+          </>
+        }
         renderItem={({ item: ward }) => (
           <View className="mb-4">
             {/* Ward Header - Collapsible */}

@@ -23,10 +23,10 @@ export interface PatientProfile {
   diagnosis: string;
   wardId: string;
   attendingDoctorId?: string;
-  attendingDoctor?: Pick<UserProfile, "name" | "role">;
+  // attendingDoctor?: Pick<UserProfile, "name" | "role">;
   attendingConsultantId?: string;
-  attendingConsultant?: Pick<UserProfile, "name" | "role">;
-  ward: Ward;
+  // attendingConsultant?: Pick<UserProfile, "name" | "role">;
+  // ward: Ward;
   // createdAt: Date;
   // updatedAt: Date;
 }
@@ -63,7 +63,7 @@ export interface MedicationOrder {
 // authentication credentials
 export interface LoginCredentials {
   staffId: string;
-  password: string;
+  pin: string;
 }
 
 // barcodes
@@ -78,6 +78,30 @@ export interface Barcode {
 export interface LinkBarcodePayload {
   barcodeString: string;
   patientId: string;
+}
+
+// Create Ward Payload
+export interface CreateWardPayload {
+  name: string;
+  description?: string;
+}
+
+// Create User Payload
+export interface CreateUserPayload {
+  staffId: string;
+  name: string;
+  role: UserRole;
+  pin: string;
+}
+
+// Create Patient Payload
+export interface CreatePatientPayload {
+  name: string;
+  bedNumber: string;
+  diagnosis: string;
+  wardId: string;
+  attendingDoctorId?: string;
+  attendingConsultantId?: string;
 }
 
 // API Error Response

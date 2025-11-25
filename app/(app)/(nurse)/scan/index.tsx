@@ -1,5 +1,4 @@
 import { Button } from "@/components/common/Button";
-import { Input } from "@/components/common/Input";
 import { Screen } from "@/components/common/Screen";
 import { BarcodeError, barcodeService } from "@/services/barcodeService";
 import { showAlert, showSimpleAlert } from "@/utils/alert";
@@ -128,9 +127,9 @@ export default function ScanScreen() {
 
   return (
     <Screen scrollable noPadding>
-      <View className="px-6 pt-6 pb-20">
+      <View className="flex-1 justify-center px-6 py-20">
         {/* TODO: Remove this testing section before production */}
-        <View className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        {/* <View className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <Text className="text-yellow-800 font-bold mb-2">
             ⚠️ Testing Mode
           </Text>
@@ -150,7 +149,7 @@ export default function ScanScreen() {
             onPress={() => handleScanBarcode(testBarcodeInput)}
             disabled={!testBarcodeInput.trim()}
           />
-        </View>
+        </View> */}
 
         {/* Camera Scan Section */}
         <View className="bg-white rounded-lg p-6 mb-6 shadow-sm">

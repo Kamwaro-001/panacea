@@ -9,7 +9,7 @@ import { useDoctorWardStore } from "../../stores/useDoctorWardStore";
 import { useWardStore } from "../../stores/useWardStore";
 
 export default function WardSelectScreen() {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const isDoctor = user?.role === "doctor" || user?.role === "consultant";
 
@@ -115,9 +115,20 @@ export default function WardSelectScreen() {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    router.replace("/(auth)/login");
+  };
+
   if (isLoading) {
     return (
       <Screen className="justify-center items-center">
+        <Pressable
+          onPress={handleLogout}
+          className="absolute top-4 right-4 p-2 active:opacity-70"
+        >
+          <Feather name="log-out" size={24} color="#9CA3AF" />
+        </Pressable>
         <ActivityIndicator
           size="large"
           color={isDoctor ? "#3B82F6" : "#14B8A6"}
@@ -130,6 +141,12 @@ export default function WardSelectScreen() {
   if (error) {
     return (
       <Screen className="justify-center items-center px-6">
+        <Pressable
+          onPress={handleLogout}
+          className="absolute top-4 right-4 p-2 active:opacity-70"
+        >
+          <Feather name="log-out" size={24} color="#9CA3AF" />
+        </Pressable>
         <Text className="text-red-600 text-center mb-4">{error}</Text>
         <Button label="Retry" onPress={handleRetry} />
       </Screen>
@@ -144,6 +161,12 @@ export default function WardSelectScreen() {
   return (
     <>
       <Screen>
+        <Pressable
+          onPress={handleLogout}
+          className="absolute top-4 right-4 p-2 active:opacity-70 z-10"
+        >
+          <Feather name="log-out" size={24} color="#9CA3AF" />
+        </Pressable>
         <View className="flex-1 justify-center">
           <Text className="text-3xl font-sans-bold text-center mb-2">
             {isDoctor ? "Select Your Wards" : "Select Your Ward"}
@@ -194,7 +217,8 @@ export default function WardSelectScreen() {
                   ${
                     isSelected
                       ? isDoctor
-                        ? "bg-blue-100 border-blue-600"
+                        ? // ? "bg-blue-100 border-blue-600"
+                          "bg-teal-100 border-teal-600"
                         : "bg-teal-100 border-teal-600"
                       : "bg-white border-gray-300"
                   }
@@ -213,7 +237,7 @@ export default function WardSelectScreen() {
                       )}
                     </View>
                     {isDoctor && isSelected && (
-                      <Feather name="check-circle" size={24} color="#3B82F6" />
+                      <Feather name="check-circle" size={24} color="#14B8A6" />
                     )}
                   </View>
                 </Pressable>

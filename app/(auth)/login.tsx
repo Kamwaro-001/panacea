@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/stores/useAuthStore";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Text, View } from "react-native";
+import { Alert, Image, KeyboardAvoidingView, Text, View } from "react-native";
 import { Button } from "../../components/common/Button";
 import { Input } from "../../components/common/Input";
 import { Screen } from "../../components/common/Screen";
@@ -37,8 +37,14 @@ export default function LoginScreen() {
     <Screen className="justify-center p-6" scrollable={true}>
       <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={100}>
         <View className="items-center mb-10">
-          {/* TODO: Add logo */}
-          <Text className="text-4xl font-sans-bold text-teal-600">PANACEA</Text>
+          <Image
+            source={require("@/assets/images/panacea-icon.png")}
+            style={{ width: 112, height: 112, marginBottom: 1 }}
+            resizeMode="contain"
+          />
+          <Text className="text-4xl font-inter-bold text-teal-600">
+            PANACEA
+          </Text>
           <Text className="text-lg text-gray-600">Staff Access</Text>
         </View>
 

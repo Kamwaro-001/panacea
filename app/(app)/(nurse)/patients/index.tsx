@@ -79,27 +79,30 @@ export default function PatientsScreen() {
   }
 
   return (
-    <Screen className="px-4 pt-6">
-      {/* Ward Name - Centered */}
-      <Text className="text-2xl font-bold text-center mb-6">
-        {selectedWard.name}
-      </Text>
-
-      {/* Search Bar */}
-      <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-1 mb-6 border border-gray-200">
-        <Feather name="search" size={20} color="#9CA3AF" />
-        <TextInput
-          className="flex-1 ml-3 text-base py-1"
-          placeholder="Search patient name or bed number"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      {/* Patients List */}
+    <Screen className="pt-6" noPadding>
       <FlatList
         data={filteredPatients}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+        ListHeaderComponent={
+          <>
+            {/* Ward Name - Centered */}
+            <Text className="text-2xl font-bold text-center mb-6">
+              {selectedWard.name}
+            </Text>
+
+            {/* Search Bar */}
+            <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-1 mb-6 border border-gray-200">
+              <Feather name="search" size={20} color="#9CA3AF" />
+              <TextInput
+                className="flex-1 ml-3 text-base py-1"
+                placeholder="Search patient name or bed number"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+          </>
+        }
         renderItem={({ item }) => (
           <Pressable
             className="bg-white rounded-lg p-4 mb-3 border border-gray-200 active:bg-gray-50"

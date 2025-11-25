@@ -8,7 +8,9 @@ export default function PatientsLayout() {
         headerTitleAlign: "center",
         // headerBackButtonDisplayMode: "minimal",
         headerBackTitle: "Back",
-        headerBackTitleStyle: { fontFamily: "Inter_500Medium" },
+        headerBackTitleStyle: {
+          fontFamily: "Inter_500Medium",
+        },
       }}
     >
       <Stack.Screen name="index" />

@@ -13,11 +13,6 @@
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to scan patient wristband barcodes for medication administration."
       }
-      // "infoPlist": {
-      //   "NSAppTransportSecurity": {
-      //     "NSAllowsArbitraryLoads": true
-      //   }
-      // }
     },
     "android": {
       "adaptiveIcon": {
@@ -40,7 +35,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/panacea-splash.png",
+          "image": "./assets/images/panacea-splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
@@ -53,6 +48,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8b09cdf6-1492-41df-a7f4-87dbf34d521d"
+      }
     }
   }
 }

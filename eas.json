@@ -7,6 +7,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "android": {
+        // TODO: undo the apk change
         "buildType": "apk"
       }
     },
@@ -15,12 +16,12 @@
       "android": {
         "buildType": "apk"
       }
-    },
-    "production": {
-      "android": {
-        "buildType": "apk"
-      }
     }
+    // "production": {
+    //   "android": {
+    //     "buildType": "apk"
+    //   }
+    // }
   },
   "submit": {
     "production": {}

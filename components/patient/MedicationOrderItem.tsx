@@ -40,16 +40,18 @@ export function MedicationOrderItem({ order }: MedicationOrderItemProps) {
         </Text>
       </View>
 
-      <View className="flex-row items-center pt-1 border-t border-gray-100">
-        <Feather name="user-check" size={12} color="#6B7280" />
-        <Text className="text-xs text-gray-600 ml-1">
-          Prescribed by:{" "}
-          <Text className="font-medium">{order.prescriber.name}</Text>{" "}
-          <Text className="text-gray-500 capitalize">
-            ({order.prescriber.role})
+      {order.prescriber && (
+        <View className="flex-row items-center pt-1 border-t border-gray-100">
+          <Feather name="user-check" size={12} color="#6B7280" />
+          <Text className="text-xs text-gray-600 ml-1">
+            Prescribed by:{" "}
+            <Text className="font-medium">{order.prescriber.name}</Text>{" "}
+            <Text className="text-gray-500 capitalize">
+              ({order.prescriber.role})
+            </Text>
           </Text>
-        </Text>
-      </View>
+        </View>
+      )}
     </View>
   );
 }

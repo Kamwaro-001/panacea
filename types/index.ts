@@ -1,53 +1,72 @@
+// ============================================================================
+// ENUMS
+// ============================================================================
+
 export type UserRole = "nurse" | "doctor" | "consultant" | "admin";
 
-export interface LoginResponse {
-  accessToken: string;
+export type OrderStatus = "active" | "stopped" | "completed";
+
+export type BarcodeStatus = "active" | "archived";
+
+export type AdminOutcome = "given" | "delayed" | "not_given" | "refused";
+
+export type BatchOperationType = "create" | "update" | "delete";
+
+export type EntityType =
+  | "user"
+  | "ward"
+  | "patient"
+  | "barcode"
+  | "order"
+  | "event";
+
+export type OperationResultStatus = "success" | "conflict" | "error";
+
+// ============================================================================
+// BASE ENTITY (OFFLINE-FIRST FIELDS)
+// ============================================================================
+
+export interface BaseEntity {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date | null;
+  version: number;
+  lastModifiedAt: Date;
 }
 
-export interface UserProfile {
-  id: string;
+// ============================================================================
+// CORE ENTITIES
+// ============================================================================
+
+export interface UserProfile extends BaseEntity {
   staffId: string;
   name: string;
   role: UserRole;
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  // pin is excluded for security
 }
 
-// patient info
-export interface PatientProfile {
-  id: string;
+export interface Ward extends BaseEntity {
   name: string;
-  photo?: string; // URL to photo
+  description?: string;
+}
+
+export interface PatientProfile extends BaseEntity {
+  name: string;
+  photo?: string;
   bedNumber: string;
   diagnosis: string;
   wardId: string;
   attendingDoctorId?: string;
-  // attendingDoctor?: Pick<UserProfile, "name" | "role">;
   attendingConsultantId?: string;
-  // attendingConsultant?: Pick<UserProfile, "name" | "role">;
-  // ward: Ward;
-  // createdAt: Date;
-  // updatedAt: Date;
+  // Optional populated relations (when fetched from API with relations)
+  ward?: Ward;
+  attendingDoctor?: UserProfile;
+  attendingConsultant?: UserProfile;
 }
 
-// ward info
-export interface Ward {
-  id: string;
-  name: string;
-  description?: string;
-  // patients: PatientProfile[]; // Omit patients for simplicity
-  // createdAt: Date;
-  // updatedAt: Date;
-}
-
-// order status
-export type OrderStatus = "active" | "stopped" | "completed";
-
-// medication order
-export interface MedicationOrder {
-  id: string;
-  patientId: string;
+export interface MedicationOrder extends BaseEntity {
   drug: string;
   dose: string;
   route: string;
@@ -55,38 +74,142 @@ export interface MedicationOrder {
   startTime: Date;
   endTime?: Date;
   status: OrderStatus;
-  // prescriber: Pick<UserProfile, "id" | "name" | "role">;
-  // createdAt: Date;
-  // updatedAt: Date;
+  patientId: string;
+  prescriberId: string;
+  // Optional populated relations (when fetched from API with relations)
+  patient?: PatientProfile;
+  prescriber?: UserProfile;
 }
 
-// authentication credentials
+export interface Barcode extends BaseEntity {
+  barcodeIdString: string;
+  status: BarcodeStatus;
+  patientId: string;
+  // Optional populated relation (when fetched from API with relations)
+  patient?: PatientProfile;
+}
+
+export interface AdministrationEvent extends BaseEntity {
+  orderId: string;
+  patientId: string;
+  nurseId: string;
+  outcome: AdminOutcome;
+  scannedBarcodeId?: string;
+  vitalsBp?: string;
+  vitalsHr?: string;
+  vitalsTemp?: string;
+  vitalsSpo2?: string;
+  vitalsPain?: string;
+  reasonCode?: string;
+  reasonNote?: string;
+  administeredAt: Date;
+  // Optional populated relations (when fetched from API with relations)
+  order?: MedicationOrder;
+  patient?: PatientProfile;
+  nurse?: UserProfile;
+}
+
+// ============================================================================
+// AUTHENTICATION
+// ============================================================================
+
 export interface LoginCredentials {
   staffId: string;
   pin: string;
+  deviceId?: string;
 }
 
-// barcodes
-export interface Barcode {
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken?: string;
+  expiresIn?: number;
+  refreshExpiresIn?: number;
+}
+
+// ============================================================================
+// OFFLINE-FIRST SYNC
+// ============================================================================
+
+export interface DeviceRegistration {
   id: string;
-  barcodeIdString: string;
-  status: "active" | "archived";
-  patientId: string;
+  deviceId: string;
+  deviceName: string;
+  deviceModel?: string;
+  osVersion?: string;
+  appVersion?: string;
+  userId: string;
+  lastSyncAt?: Date;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-// link Barcode
-export interface LinkBarcodePayload {
-  barcodeString: string;
-  patientId: string;
+export interface RegisterDeviceDto {
+  deviceId: string;
+  deviceName: string;
+  deviceModel?: string;
+  osVersion?: string;
+  appVersion?: string;
 }
 
-// Create Ward Payload
+export interface BatchOperationDto {
+  operationId: string;
+  type: BatchOperationType;
+  entityType: EntityType;
+  entityId: string;
+  data: Record<string, any>;
+  expectedVersion?: number;
+}
+
+export interface BatchSyncRequestDto {
+  deviceId: string;
+  operations: BatchOperationDto[];
+}
+
+export interface OperationResultDto {
+  operationId: string;
+  status: OperationResultStatus;
+  entityId?: string;
+  version?: number;
+  conflictId?: string;
+  error?: string;
+}
+
+export interface BatchSyncResponseDto {
+  serverTimestamp: string;
+  results: OperationResultDto[];
+  successCount: number;
+  conflictCount: number;
+  errorCount: number;
+}
+
+export interface SyncChangesResponseDto {
+  serverTimestamp: string;
+  users: UserProfile[];
+  wards: Ward[];
+  patients: PatientProfile[];
+  barcodes: Barcode[];
+  orders: MedicationOrder[];
+  events: AdministrationEvent[];
+  deletions: {
+    users: string[];
+    wards: string[];
+    patients: string[];
+    barcodes: string[];
+    orders: string[];
+    events: string[];
+  };
+}
+
+// ============================================================================
+// API PAYLOADS
+// ============================================================================
+
 export interface CreateWardPayload {
   name: string;
   description?: string;
 }
 
-// Create User Payload
 export interface CreateUserPayload {
   staffId: string;
   name: string;
@@ -94,7 +217,6 @@ export interface CreateUserPayload {
   pin: string;
 }
 
-// Create Patient Payload
 export interface CreatePatientPayload {
   name: string;
   bedNumber: string;
@@ -104,28 +226,54 @@ export interface CreatePatientPayload {
   attendingConsultantId?: string;
 }
 
-// API Error Response
-export interface ApiError {
-  message: string;
-  errorCode?: string;
+export interface LinkBarcodePayload {
+  barcodeString: string;
+  patientId: string;
 }
 
-// scanning a barcode should return an object with patient info and active medication orders
+export interface CreateEventPayload {
+  id?: string; // Client can provide UUID for offline-first
+  orderId: string;
+  patientId: string;
+  outcome: AdminOutcome;
+  scannedBarcodeId?: string;
+  vitalsBp?: string;
+  vitalsHr?: string;
+  vitalsTemp?: string;
+  vitalsSpo2?: string;
+  vitalsPain?: string;
+  reasonCode?: string;
+  reasonNote?: string;
+}
+
+// ============================================================================
+// API RESPONSES
+// ============================================================================
+
 export interface ScannedBarcodeResponse {
   patient: PatientProfile;
   activeOrders: MedicationOrder[];
 }
 
-// TODO: change to the new property names
-// vitals recording
-export interface VitalsData {
-  bp: string; // Blood Pressure (e.g., "120/80")
-  hr: string; // Heart Rate (bpm)
-  temp: string; // Temperature (°C or °F)
-  spo2: string; // Oxygen Saturation (%)
-  painScore: string; // Pain Score (0-10)
+export interface ApiError {
+  message: string;
+  errorCode?: string;
 }
 
+// ============================================================================
+// DEPRECATED - kept for backward compatibility
+// ============================================================================
+
+/** @deprecated Use CreateEventPayload instead */
+export interface VitalsData {
+  bp: string;
+  hr: string;
+  temp: string;
+  spo2: string;
+  painScore: string;
+}
+
+/** @deprecated Use CreateEventPayload instead */
 export interface RecordAdministrationPayload {
   patientId: string;
   vitals: VitalsData;

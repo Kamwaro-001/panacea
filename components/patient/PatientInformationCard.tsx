@@ -29,7 +29,7 @@ export function PatientInformationCard({
   patient,
 }: PatientInformationCardProps) {
   const infoItems = [
-    { label: "Ward", value: patient.ward.name },
+    patient.ward && { label: "Ward", value: patient.ward.name },
     { label: "Bed Number", value: patient.bedNumber },
     { label: "Diagnosis", value: patient.diagnosis },
     patient.attendingDoctor && {

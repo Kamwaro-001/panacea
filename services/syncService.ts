@@ -16,27 +16,18 @@ import uuid from "react-native-uuid";
 import {
   getDatabase,
   getMetadata,
-  setMetadata,
-  markInitialSyncComplete,
   isFirstLaunchWithOffline,
+  markInitialSyncComplete,
+  setMetadata,
 } from "../database";
 import {
   getPendingOperations,
+  markOperationConflict,
+  markOperationFailed,
   markOperationSyncing,
   removeOperation,
-  markOperationFailed,
-  markOperationConflict,
-  QueueOperation,
 } from "../database/operationQueue";
 import { apiClient } from "../utils/apiClient";
-import {
-  UserRow,
-  WardRow,
-  PatientRow,
-  BarcodeRow,
-  OrderRow,
-  EventRow,
-} from "../database/schema";
 
 export interface SyncStatus {
   isSyncing: boolean;
@@ -77,14 +68,14 @@ interface BatchSyncResponse {
   successCount: number;
   conflictCount: number;
   errorCount: number;
-  results: Array<{
+  results: {
     operationId: string;
     status: "success" | "conflict" | "error";
     entityId?: string;
     version?: number;
     conflictId?: string;
     error?: string;
-  }>;
+  }[];
 }
 
 /**
@@ -181,7 +172,10 @@ export async function pullChanges(wardId?: string): Promise<void> {
   const lastSync = await getMetadata("last_sync_timestamp");
 
   if (!lastSync) {
-    throw new Error("No last sync timestamp. Run initial sync first.");
+    // No last sync - perform initial sync instead
+    console.log("⚠️  No last sync timestamp found, performing initial sync");
+    await performInitialSync(wardId);
+    return;
   }
 
   try {
@@ -417,12 +411,13 @@ async function applyServerChanges(changes: SyncChangesResponse): Promise<void> {
     for (const order of changes.orders) {
       await db.runAsync(
         `INSERT OR REPLACE INTO orders 
-         (id, patient_id, drug, dose, route, frequency, start_time, end_time, status,
+         (id, patient_id, prescriber_id, drug, dose, route, frequency, start_time, end_time, status,
           version, deleted_at, last_modified_at, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           order.id,
           order.patientId,
+          order.prescriberId,
           order.drug,
           order.dose,
           order.route,
@@ -443,8 +438,9 @@ async function applyServerChanges(changes: SyncChangesResponse): Promise<void> {
       await db.runAsync(
         `INSERT OR REPLACE INTO events 
          (id, order_id, patient_id, nurse_id, outcome, vitals_bp, vitals_hr, vitals_temp,
-          vitals_spo2, vitals_pain_score, scanned_barcode_id, version, deleted_at, last_modified_at, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          vitals_spo2, vitals_pain_score, scanned_barcode_id, reason_code, reason_note,
+          version, deleted_at, last_modified_at, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           event.id,
           event.orderId,
@@ -455,12 +451,14 @@ async function applyServerChanges(changes: SyncChangesResponse): Promise<void> {
           event.vitalsHr || null,
           event.vitalsTemp || null,
           event.vitalsSpo2 || null,
-          event.vitalsPainScore || null,
+          event.vitalsPain || null, // Backend uses vitalsPain, not vitalsPainScore
           event.scannedBarcodeId || null,
+          event.reasonCode || null,
+          event.reasonNote || null,
           event.version,
           event.deletedAt || null,
           event.lastModifiedAt,
-          event.createdAt,
+          event.administeredAt || event.createdAt, // Backend uses administeredAt
         ]
       );
     }

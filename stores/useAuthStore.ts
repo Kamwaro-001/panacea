@@ -1,19 +1,19 @@
 import {
+  clearAllData,
+  initDatabase,
+  isFirstLaunchWithOffline,
+} from "@/database";
+import {
+  getAccessToken,
   getUserProfile,
   login as loginService,
   logout as logoutService,
-  getAccessToken,
   refreshAccessToken,
 } from "@/services/authService";
-import { registerDevice, performInitialSync } from "@/services/syncService";
-import {
-  initDatabase,
-  isFirstLaunchWithOffline,
-  clearAllData,
-} from "@/database";
-import { initNetworkMonitor } from "@/utils/networkMonitor";
+import { performInitialSync, registerDevice } from "@/services/syncService";
 import { UserProfile } from "@/types";
 import { configureAuthHandlers } from "@/utils/apiClient";
+import { initNetworkMonitor } from "@/utils/networkMonitor";
 import { create } from "zustand";
 
 type AuthState = {
@@ -21,6 +21,7 @@ type AuthState = {
   user: UserProfile | null;
   isLoading: boolean;
   isInitialized: boolean;
+  isInitialSyncing: boolean;
   error: string | null;
   wardId: string | null;
   login: (
@@ -40,6 +41,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: false,
   isInitialized: false,
+  isInitialSyncing: false,
   error: null,
   wardId: null,
 
@@ -93,7 +95,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Step 3: Fetch user profile
       const userProfile = await getUserProfile();
-      set({ user: userProfile, wardId: wardId || null });
+      set({ user: userProfile, wardId: wardId || null, isLoading: false });
 
       // Step 4: Register device with backend
       await registerDevice(userProfile.id);
@@ -103,20 +105,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (isFirstLaunch) {
         console.log("📥 First launch detected, downloading initial data...");
-        // Perform initial sync with ward filtering
-        await performInitialSync(wardId);
-        console.log("✅ Initial data sync complete");
+        set({ isInitialSyncing: true });
+
+        try {
+          // Perform initial sync with ward filtering - WAIT for completion
+          await performInitialSync(wardId);
+          console.log("✅ Initial data sync complete");
+        } catch (syncError) {
+          console.error("❌ Initial sync failed:", syncError);
+          // Don't throw - allow login but show error
+          set({
+            error:
+              "Initial data download failed. Some data may not be available offline.",
+            isInitialSyncing: false,
+          });
+        } finally {
+          set({ isInitialSyncing: false });
+        }
       }
 
       // Step 6: Start network monitor for automatic sync
       networkMonitorCleanup = initNetworkMonitor(wardId);
 
-      set({ isLoading: false });
       console.log("✅ Login complete with offline-first setup");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Login failed";
-      set({ error: errorMessage, isLoading: false, token: null, user: null });
+      set({
+        error: errorMessage,
+        isLoading: false,
+        isInitialSyncing: false,
+        token: null,
+        user: null,
+      });
       throw error; // Re-throw so component can handle it
     }
   },

@@ -11,7 +11,7 @@ export default function LoginScreen() {
   const [pin, setPin] = useState("");
 
   // Get state and actions from auth store
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, isInitialSyncing } = useAuthStore();
 
   const handleLogin = async () => {
     if (!staffId || !pin) {
@@ -67,11 +67,26 @@ export default function LoginScreen() {
 
         <View className="mt-6">
           <Button
-            label={isLoading ? "Logging in..." : "Login"}
+            label={
+              isInitialSyncing
+                ? "Downloading data..."
+                : isLoading
+                  ? "Logging in..."
+                  : "Login"
+            }
             onPress={handleLogin}
-            isLoading={isLoading}
+            isLoading={isLoading || isInitialSyncing}
           />
         </View>
+
+        {isInitialSyncing && (
+          <View className="mt-4 items-center">
+            <Text className="text-sm text-gray-600 text-center">
+              Please wait while we download your ward data.{"\n"}
+              This only happens on first login.
+            </Text>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </Screen>
   );

@@ -21,7 +21,9 @@
         "backgroundImage": "./assets/images/panacea-adaptive-icon.png",
         "monochromeImage": "./assets/images/panacea-adaptive-icon.png"
       },
-      "permissions": ["CAMERA"],
+      "permissions": [
+        "CAMERA"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.panacea.app"
@@ -43,7 +45,9 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,

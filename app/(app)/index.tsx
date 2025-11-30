@@ -1,17 +1,30 @@
 import { Redirect } from "expo-router";
+import { Text, View } from "react-native";
 import { Loading } from "../../components/common/Loading";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { useDoctorWardStore } from "../../stores/useDoctorWardStore";
 import { useWardStore } from "../../stores/useWardStore";
 
 export default function AppGatekeeper() {
-  const { user } = useAuthStore();
+  const { user, isInitialSyncing } = useAuthStore();
   const { selectedWard } = useWardStore();
   const { selectedWards } = useDoctorWardStore();
 
   if (!user) {
     // Auth store isn't loaded? Or user is invalid. Back to login.
     return <Redirect href="/(auth)/login" />;
+  }
+
+  // Wait for initial sync to complete before navigating
+  if (isInitialSyncing) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Loading />
+        <Text style={{ marginTop: 16, color: "#6b7280" }}>
+          Downloading initial data...
+        </Text>
+      </View>
+    );
   }
 
   const { role } = user;

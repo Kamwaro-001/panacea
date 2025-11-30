@@ -4,7 +4,6 @@ import NetInfo from "@react-native-community/netinfo";
 import { getDatabase } from "../database";
 import {
   getOrdersByPatientLocal,
-  getActiveOrdersByPatientLocal,
   rowToMedicationOrder,
 } from "../database/helpers";
 import { queueOperation, generateUUID } from "../database/operationQueue";
@@ -20,29 +19,38 @@ export const getOrdersByPatient = async (
     // Always read from local database first
     const localOrders = await getOrdersByPatientLocal(patientId);
 
-    // Try to fetch from API in background
+    // Try to sync with API in background (non-blocking)
     const networkState = await NetInfo.fetch();
     if (networkState.isConnected) {
+      // Background sync - updates cache but doesn't block return
       fetchAndCacheOrders(patientId).catch((err) =>
-        console.warn("Background sync failed:", err)
+        console.warn("Background orders sync failed:", err)
       );
     }
 
+    // Always return local data for consistent offline-first behavior
     return localOrders;
   } catch (error) {
     console.error("Failed to get orders from local DB:", error);
-    // Fallback to API
-    const response = await apiClient.get("/orders", {
-      params: { patientId },
-    });
-    return response.data;
+    // Only if local DB completely fails, try API as last resort
+    try {
+      const response = await apiClient.get("/orders", {
+        params: { patientId },
+      });
+      return response.data;
+    } catch (apiError) {
+      console.error("API fallback also failed:", apiError);
+      return []; // Return empty array as last resort
+    }
   }
 };
 
 /**
  * Background fetch and cache orders
  */
-async function fetchAndCacheOrders(patientId: string): Promise<void> {
+async function fetchAndCacheOrders(
+  patientId: string
+): Promise<MedicationOrder[]> {
   try {
     const response = await apiClient.get("/orders", {
       params: { patientId },
@@ -73,8 +81,10 @@ async function fetchAndCacheOrders(patientId: string): Promise<void> {
         ]
       );
     }
+    return response.data;
   } catch (error) {
     console.warn("Background fetch failed:", error);
+    return [];
   }
 }
 

@@ -9,20 +9,23 @@ import { getAllWardsLocal, getWardByIdLocal } from "../database/helpers";
  */
 export const getWards = async (): Promise<Ward[]> => {
   try {
+    console.log("🏥 Ward service: Reading wards from local DB...");
     // Always read from local database first
     const localWards = await getAllWardsLocal();
+    console.log(`🏥 Ward service: Returning ${localWards.length} local wards`);
 
     // Try to fetch from API in background
     const networkState = await NetInfo.fetch();
     if (networkState.isConnected) {
+      console.log("🌐 Ward service: Triggering background sync...");
       fetchAndCacheWards().catch((err) =>
-        console.warn("Background sync failed:", err)
+        console.warn("⚠️ Background sync failed:", err)
       );
     }
 
     return localWards;
   } catch (error) {
-    console.error("Failed to get wards from local DB:", error);
+    console.error("❌ Failed to get wards from local DB:", error);
     // Fallback to API
     const response = await apiClient.get("/wards");
     return response.data;

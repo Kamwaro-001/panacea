@@ -4,7 +4,8 @@ import { Barcode } from "@/types";
 import { showAlert } from "@/utils/alert";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import { useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -31,9 +32,12 @@ export default function BarcodesScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchBarcodes();
-  }, []);
+  // Refetch barcodes when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchBarcodes();
+    }, [])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);

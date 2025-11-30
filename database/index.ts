@@ -82,7 +82,7 @@ async function getDatabaseVersion(
       ["database_version"]
     );
     return result ? parseInt(result.value, 10) : 0;
-  } catch (error) {
+  } catch {
     // Table doesn't exist yet, this is first run
     return 0;
   }
@@ -133,6 +133,14 @@ export async function clearAllData(): Promise<void> {
     DELETE FROM pending_operations;
   `);
 
+  // Clear sync metadata to force initial sync on next login
+  await database.runAsync(
+    "DELETE FROM device_metadata WHERE key IN (?, ?, ?)",
+    ["last_sync_timestamp", "initial_sync_complete", "last_sync_changes"]
+  );
+
+  // Keep device_id so the device remains registered but force re-sync
+
   console.log("🗑️  All local data cleared");
 }
 
@@ -160,14 +168,20 @@ export async function setMetadata(key: string, value: string): Promise<void> {
 }
 
 /**
- * Check if this is first launch with offline support
+ * Check if this is first launch with offline support or data was cleared
+ * Returns true if initial sync is needed (no last sync timestamp)
  */
 export async function isFirstLaunchWithOffline(): Promise<boolean> {
   try {
     const lastSync = await getMetadata("last_sync_timestamp");
-    const deviceId = await getMetadata("device_id");
-    return !lastSync && !deviceId;
-  } catch {
+    console.log("🔍 Checking first launch - last_sync_timestamp:", lastSync);
+    // If no last sync timestamp, we need initial sync regardless of device_id
+    // This handles both first launch AND post-logout scenarios
+    const needsInitialSync = !lastSync;
+    console.log("🔍 Needs initial sync:", needsInitialSync);
+    return needsInitialSync;
+  } catch (error) {
+    console.log("🔍 Error checking first launch, assuming true:", error);
     return true;
   }
 }

@@ -22,7 +22,7 @@ export function Input({
         <Text className="text-sm font-sans-bold text-gray-700">{label}</Text>
       </View>
       <TextInput
-        className={`w-full ${compact ? "h-10" : "h-14"} bg-white border border-gray-300 rounded-lg ${compact ? "px-3" : "px-4"} text-base`}
+        className={`w-full ${compact ? "h-10" : "h-14"} bg-white border border-gray-300 rounded-lg ${compact ? "px-3" : "px-4"} text-base text-black`}
         placeholderTextColor="#9CA3AF"
         {...props}
       />

@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -137,53 +139,59 @@ export default function LinkPatientScreen() {
   }
 
   return (
-    <Screen noPadding>
-      <View className="flex-1 px-6 pt-6">
-        {/* Search Box */}
-        <View className="mb-4">
-          <View className="flex-row items-center bg-white border border-gray-300 rounded-lg px-4 h-12">
-            <Feather name="search" size={20} color="#9CA3AF" />
-            <TextInput
-              className="flex-1 ml-3 text-base"
-              placeholder="Search by name or bed number"
-              placeholderTextColor="#9CA3AF"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-        </View>
-
-        {/* Patients List */}
-        {filteredPatients.length === 0 ? (
-          <View className="flex-1 justify-center items-center">
-            <Feather name="users" size={64} color="#D1D5DB" />
-            <Text className="text-gray-500 mt-4 text-center">
-              {searchQuery ? "No patients found" : "No patients in this ward"}
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={filteredPatients}
-            renderItem={renderPatientItem}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 128 }}
-          />
-        )}
-
-        {/* Floating Link Button */}
-        {selectedPatient && (
-          <View className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-4 bg-gradient-to-t from-white">
-            <View className="bg-white rounded-lg shadow-lg p-4">
-              <Button
-                label="Link Patient"
-                onPress={handleLinkPatient}
-                disabled={isLinking}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+      keyboardVerticalOffset={100}
+    >
+      <Screen noPadding>
+        <View className="flex-1 px-6 pt-6">
+          {/* Search Box */}
+          <View className="mb-4">
+            <View className="flex-row items-center bg-white border border-gray-300 rounded-lg px-4 h-12">
+              <Feather name="search" size={20} color="#9CA3AF" />
+              <TextInput
+                className="flex-1 ml-3 text-base"
+                placeholder="Search by name or bed number"
+                placeholderTextColor="#9CA3AF"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
               />
             </View>
           </View>
-        )}
-      </View>
-    </Screen>
+
+          {/* Patients List */}
+          {filteredPatients.length === 0 ? (
+            <View className="flex-1 justify-center items-center">
+              <Feather name="users" size={64} color="#D1D5DB" />
+              <Text className="text-gray-500 mt-4 text-center">
+                {searchQuery ? "No patients found" : "No patients in this ward"}
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredPatients}
+              renderItem={renderPatientItem}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 128 }}
+            />
+          )}
+
+          {/* Floating Link Button */}
+          {selectedPatient && (
+            <View className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-4 bg-gradient-to-t from-white">
+              <View className="bg-white rounded-lg shadow-lg p-4">
+                <Button
+                  label="Link Patient"
+                  onPress={handleLinkPatient}
+                  disabled={isLinking}
+                />
+              </View>
+            </View>
+          )}
+        </View>
+      </Screen>
+    </KeyboardAvoidingView>
   );
 }

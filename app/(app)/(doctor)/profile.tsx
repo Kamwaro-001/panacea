@@ -36,8 +36,8 @@ export default function DoctorProfileScreen() {
   return (
     <Screen className="justify-center items-center px-6">
       {/* Avatar Icon */}
-      <View className="w-24 h-24 rounded-full bg-blue-100 items-center justify-center mb-6">
-        <Feather name="user" size={48} color="#3B82F6" />
+      <View className="w-24 h-24 rounded-full bg-teal-100 items-center justify-center mb-6">
+        <Feather name="user" size={48} color="#14B8A6" />
       </View>
 
       {/* Profile Details - Centered */}

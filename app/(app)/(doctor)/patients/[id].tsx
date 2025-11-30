@@ -13,14 +13,15 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -43,6 +44,7 @@ export default function DoctorPatientDetailScreen() {
     null
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Form state for add/edit
   const [formData, setFormData] = useState({
@@ -52,13 +54,33 @@ export default function DoctorPatientDetailScreen() {
     frequency: "",
   });
 
+  // Load patient and orders immediately when ID changes
   useEffect(() => {
     if (id) {
-      fetchPatientById(id);
-      fetchOrdersByPatient(id);
+      Promise.all([fetchPatientById(id), fetchOrdersByPatient(id)]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, fetchPatientById, fetchOrdersByPatient]);
+
+  // Refresh when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        Promise.all([fetchPatientById(id), fetchOrdersByPatient(id)]);
+      }
+    }, [id, fetchPatientById, fetchOrdersByPatient])
+  );
+
+  // Pull to refresh handler
+  const onRefresh = useCallback(async () => {
+    if (!id) return;
+
+    setRefreshing(true);
+    try {
+      await Promise.all([fetchPatientById(id), fetchOrdersByPatient(id)]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [id, fetchPatientById, fetchOrdersByPatient]);
 
   const handleRetry = () => {
     if (id) {
@@ -183,7 +205,7 @@ export default function DoctorPatientDetailScreen() {
     }
   };
 
-  if (isLoading) {
+  if ((isLoading || ordersLoading) && !selectedPatient) {
     return (
       <Screen className="justify-center items-center">
         <ActivityIndicator size="large" color="#3B82F6" />
@@ -213,131 +235,147 @@ export default function DoctorPatientDetailScreen() {
 
   return (
     <>
-      <Screen scrollable noPadding>
-        <View className="px-6 pt-6 pb-24">
-          {/* Patient Photo/Avatar */}
-          <View className="items-center mb-6">
-            {selectedPatient.photo ? (
-              <View className="w-24 h-24 rounded-full bg-gray-200">
-                <Image
-                  source={selectedPatient.photo}
-                  className="w-24 h-24 rounded-full"
-                />
-              </View>
-            ) : (
-              <View className="w-24 h-24 rounded-full bg-blue-100 items-center justify-center">
-                <Feather name="user" size={48} color="#3B82F6" />
-              </View>
-            )}
-          </View>
-
-          {/* Patient Name */}
-          <Text className="text-2xl font-bold text-gray-900 text-center mb-6">
-            {selectedPatient.name}
-          </Text>
-
-          {/* Patient Details Card */}
-          <PatientInformationCard patient={selectedPatient} />
-
-          {/* Active Medication Orders Card */}
-          <View className="bg-white rounded-lg p-6 shadow-sm">
-            <View className="flex-row items-center mb-4">
-              <MaterialCommunityIcons name="pill" size={20} color="#3B82F6" />
-              <Text className="text-lg font-bold text-gray-900 ml-2">
-                Active Medication Orders
-              </Text>
+      <Screen noPadding>
+        <ScrollView
+          contentContainerStyle={{
+            paddingHorizontal: 24,
+            paddingTop: 24,
+            paddingBottom: 96,
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#14B8A6"]}
+              tintColor="#14B8A6"
+            />
+          }
+        >
+          <View>
+            {/* Patient Photo/Avatar */}
+            <View className="items-center mb-6">
+              {selectedPatient.photo ? (
+                <View className="w-24 h-24 rounded-full bg-gray-200">
+                  <Image
+                    source={selectedPatient.photo}
+                    className="w-24 h-24 rounded-full"
+                  />
+                </View>
+              ) : (
+                <View className="w-24 h-24 rounded-full bg-teal-100 items-center justify-center">
+                  <Feather name="user" size={48} color="#14B8A6" />
+                </View>
+              )}
             </View>
 
-            {ordersLoading ? (
-              <View className="py-8 items-center">
-                <ActivityIndicator size="small" color="#3B82F6" />
-                <Text className="text-gray-500 mt-2">Loading orders...</Text>
-              </View>
-            ) : ordersError ? (
-              <View className="py-4">
-                <Text className="text-red-600 text-center mb-2">
-                  {ordersError}
+            {/* Patient Name */}
+            <Text className="text-2xl font-bold text-gray-900 text-center mb-6">
+              {selectedPatient.name}
+            </Text>
+
+            {/* Patient Details Card */}
+            <PatientInformationCard patient={selectedPatient} />
+
+            {/* Active Medication Orders Card */}
+            <View className="bg-white rounded-lg p-6 shadow-sm">
+              <View className="flex-row items-center mb-4">
+                <MaterialCommunityIcons name="pill" size={20} color="#14B8A6" />
+                <Text className="text-lg font-bold text-gray-900 ml-2">
+                  Active Medication Orders
                 </Text>
               </View>
-            ) : activeOrders.length === 0 ? (
-              <View className="py-8 items-center">
-                <MaterialCommunityIcons
-                  name="clipboard-text-outline"
-                  size={48}
-                  color="#9CA3AF"
-                />
-                <Text className="text-gray-500 mt-2">
-                  No active medication orders
-                </Text>
-              </View>
-            ) : (
-              <View>
-                {activeOrders.map((order, index) => (
-                  <View
-                    key={order.id}
-                    className={`p-3 rounded-lg border border-gray-200 ${index > 0 ? "mt-3" : ""}`}
-                  >
-                    <View className="flex-row justify-between items-start mb-1">
-                      <Text className="text-sm font-bold text-gray-900 flex-1">
-                        {order.drug} • {order.dose}
-                      </Text>
-                    </View>
 
-                    <View className="mb-2">
-                      <Text className="text-xs text-gray-600">
-                        Route: {order.route} • Frequency: {order.frequency}
-                      </Text>
-                    </View>
+              {ordersLoading ? (
+                <View className="py-8 items-center">
+                  <ActivityIndicator size="small" color="#14B8A6" />
+                  <Text className="text-gray-500 mt-2">Loading orders...</Text>
+                </View>
+              ) : ordersError ? (
+                <View className="py-4">
+                  <Text className="text-red-600 text-center mb-2">
+                    {ordersError}
+                  </Text>
+                </View>
+              ) : activeOrders.length === 0 ? (
+                <View className="py-8 items-center">
+                  <MaterialCommunityIcons
+                    name="clipboard-text-outline"
+                    size={48}
+                    color="#9CA3AF"
+                  />
+                  <Text className="text-gray-500 mt-2">
+                    No active medication orders
+                  </Text>
+                </View>
+              ) : (
+                <View>
+                  {activeOrders.map((order, index) => (
+                    <View
+                      key={order.id}
+                      className={`p-3 rounded-lg border border-gray-200 ${index > 0 ? "mt-3" : ""}`}
+                    >
+                      <View className="flex-row justify-between items-start mb-1">
+                        <Text className="text-sm font-bold text-gray-900 flex-1">
+                          {order.drug} • {order.dose}
+                        </Text>
+                      </View>
 
-                    <View className="flex-row items-center pt-2 border-t border-gray-100 mb-2">
-                      <Feather name="clock" size={12} color="#6B7280" />
-                      <Text className="text-xs text-gray-600 ml-1">
-                        Started:{" "}
-                        {new Date(order.startTime).toLocaleDateString()}
-                      </Text>
-                    </View>
+                      <View className="mb-2">
+                        <Text className="text-xs text-gray-600">
+                          Route: {order.route} • Frequency: {order.frequency}
+                        </Text>
+                      </View>
 
-                    {/* Action Buttons */}
-                    <View className="flex-row gap-2">
-                      <Pressable
-                        className="flex-1 bg-blue-50 border border-blue-200 rounded-lg py-2 px-3 active:bg-blue-100"
-                        onPress={() => handleEditOrder(order)}
-                      >
-                        <View className="flex-row items-center justify-center">
-                          <Feather name="edit-2" size={14} color="#3B82F6" />
-                          <Text className="text-blue-600 font-semibold ml-1 text-xs">
-                            Edit
-                          </Text>
-                        </View>
-                      </Pressable>
+                      <View className="flex-row items-center pt-2 border-t border-gray-100 mb-2">
+                        <Feather name="clock" size={12} color="#6B7280" />
+                        <Text className="text-xs text-gray-600 ml-1">
+                          Started:{" "}
+                          {new Date(order.startTime).toLocaleDateString()}
+                        </Text>
+                      </View>
 
-                      <Pressable
-                        className="flex-1 bg-red-50 border border-red-200 rounded-lg py-2 px-3 active:bg-red-100"
-                        onPress={() => handleStopOrder(order)}
-                      >
-                        <View className="flex-row items-center justify-center">
-                          <MaterialIcons
-                            name="stop-circle"
-                            size={16}
-                            color="#DC2626"
-                          />
-                          <Text className="text-red-600 font-semibold ml-1 text-xs">
-                            Stop
-                          </Text>
-                        </View>
-                      </Pressable>
+                      {/* Action Buttons */}
+                      <View className="flex-row gap-2">
+                        <Pressable
+                          className="flex-1 bg-teal-50 border border-teal-200 rounded-lg py-2 px-3 active:bg-teal-100"
+                          onPress={() => handleEditOrder(order)}
+                        >
+                          <View className="flex-row items-center justify-center">
+                            <Feather name="edit-2" size={14} color="#14B8A6" />
+                            <Text className="text-teal-600 font-semibold ml-1 text-xs">
+                              Edit
+                            </Text>
+                          </View>
+                        </Pressable>
+
+                        <Pressable
+                          className="flex-1 bg-red-50 border border-red-200 rounded-lg py-2 px-3 active:bg-red-100"
+                          onPress={() => handleStopOrder(order)}
+                        >
+                          <View className="flex-row items-center justify-center">
+                            <MaterialIcons
+                              name="stop-circle"
+                              size={16}
+                              color="#DC2626"
+                            />
+                            <Text className="text-red-600 font-semibold ml-1 text-xs">
+                              Stop
+                            </Text>
+                          </View>
+                        </Pressable>
+                      </View>
                     </View>
-                  </View>
-                ))}
-              </View>
-            )}
+                  ))}
+                </View>
+              )}
+            </View>
           </View>
-        </View>
+        </ScrollView>
       </Screen>
 
       {/* Floating Add Button */}
       <Pressable
-        className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-blue-600 items-center justify-center shadow-lg active:bg-blue-700"
+        className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-teal-600 items-center justify-center shadow-lg active:bg-teal-700"
         onPress={handleAddOrder}
       >
         <Feather name="plus" size={28} color="white" />

@@ -6,11 +6,11 @@
  * and queues for sync.
  */
 
-import { getDatabase } from "../database";
-import { queueOperation, generateUUID } from "../database/operationQueue";
-import { apiClient } from "../utils/apiClient";
-import NetInfo from "@react-native-community/netinfo";
 import { AdministrationEvent, CreateEventPayload } from "@/types";
+import NetInfo from "@react-native-community/netinfo";
+import { getDatabase } from "../database";
+import { generateUUID, queueOperation } from "../database/operationQueue";
+import { apiClient } from "../utils/apiClient";
 
 export interface AdministrationEventData {
   orderId: string;
@@ -117,7 +117,7 @@ export async function recordAdministration(
  */
 async function attemptImmediateSync(eventId: string, data: any): Promise<void> {
   try {
-    await apiClient.post("/events", { id: eventId, ...data });
+    await apiClient.post("/events/administer", data);
     console.log(`✅ Administration event synced immediately: ${eventId}`);
   } catch (error) {
     // Silently fail, will be synced in next batch

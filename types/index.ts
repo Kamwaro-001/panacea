@@ -10,6 +10,23 @@ export type BarcodeStatus = "active" | "archived";
 
 export type AdminOutcome = "given" | "delayed" | "not_given" | "refused";
 
+export type ReasonCode =
+  | "PATIENT_NOT_IN_WARD"
+  | "PATIENT_ASLEEP"
+  | "PATIENT_REFUSED"
+  | "NPO"
+  | "VITALS_UNSAFE"
+  | "ALLERGY_RISK"
+  | "IV_ACCESS_ISSUE"
+  | "MED_STOCK_OUT"
+  | "MED_MISPLACED"
+  | "PHARMACY_DELAY"
+  | "ORDER_CLARIFY"
+  | "PRESCRIBER_WITHHELD"
+  | "DUPLICATE_RISK"
+  | "TIME_WINDOW_MISS"
+  | "OTHER";
+
 export type BatchOperationType = "create" | "update" | "delete";
 
 export type EntityType =

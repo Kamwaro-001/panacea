@@ -4,12 +4,13 @@ import { useDoctorWardStore } from "@/stores/useDoctorWardStore";
 import { usePatientStore } from "@/stores/usePatientStore";
 import { PatientProfile } from "@/types";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   Text,
   TextInput,
   View,
@@ -24,27 +25,55 @@ interface PatientsByWard {
 
 export default function DoctorPatientsScreen() {
   const selectedWards = useDoctorWardStore((state) => state.selectedWards);
-  const { patients, isLoading, error, fetchPatientsByWard, clearPatients } =
+  const { patients, isLoading, error, fetchPatientsByWards, clearPatients } =
     usePatientStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [patientsByWard, setPatientsByWard] = useState<PatientsByWard[]>([]);
   const [expandedWards, setExpandedWards] = useState<Set<string>>(new Set());
+  const [refreshing, setRefreshing] = useState(false);
+  const lastFetchTime = useRef<number>(0);
+  const lastWardIds = useRef<string>("");
+  const REFETCH_THRESHOLD = 30000; // 30 seconds
 
-  useEffect(() => {
-    if (selectedWards.length > 0) {
-      // Fetch patients from all selected wards
-      const fetchAllPatients = async () => {
-        clearPatients();
-        for (const ward of selectedWards) {
-          await fetchPatientsByWard(ward.id);
+  // Load patients when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedWards.length > 0) {
+        const selectedWardIds = selectedWards.map((w) => w.id);
+        const wardIdsKey = selectedWardIds.sort().join(",");
+        const timeSinceLastFetch = Date.now() - lastFetchTime.current;
+        const wardsChanged = lastWardIds.current !== wardIdsKey;
+
+        // Fetch if: wards changed OR data is stale OR first time
+        if (
+          wardsChanged ||
+          timeSinceLastFetch > REFETCH_THRESHOLD ||
+          lastFetchTime.current === 0
+        ) {
+          fetchPatientsByWards(selectedWardIds);
+          lastFetchTime.current = Date.now();
+          lastWardIds.current = wardIdsKey;
         }
-      };
-      fetchAllPatients();
-    } else {
-      clearPatients();
+      } else {
+        clearPatients();
+        lastWardIds.current = "";
+      }
+    }, [selectedWards, fetchPatientsByWards, clearPatients])
+  );
+
+  // Pull to refresh handler
+  const onRefresh = useCallback(async () => {
+    if (selectedWards.length === 0) return;
+
+    setRefreshing(true);
+    try {
+      const selectedWardIds = selectedWards.map((w) => w.id);
+      await fetchPatientsByWards(selectedWardIds);
+      lastFetchTime.current = Date.now();
+    } finally {
+      setRefreshing(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedWards]);
+  }, [selectedWards, fetchPatientsByWards]);
 
   useEffect(() => {
     // Group patients by ward
@@ -101,13 +130,8 @@ export default function DoctorPatientsScreen() {
 
   const handleRetry = () => {
     if (selectedWards.length > 0) {
-      const fetchAllPatients = async () => {
-        clearPatients();
-        for (const ward of selectedWards) {
-          await fetchPatientsByWard(ward.id);
-        }
-      };
-      fetchAllPatients();
+      const selectedWardIds = selectedWards.map((w) => w.id);
+      fetchPatientsByWards(selectedWardIds);
     }
   };
 
@@ -125,16 +149,19 @@ export default function DoctorPatientsScreen() {
     );
   }
 
-  if (isLoading) {
+  // Only show loading screen if we have no data at all and are loading
+  // This supports offline-first: show cached data immediately even while syncing
+  if (isLoading && patients.length === 0) {
     return (
       <Screen className="justify-center items-center">
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color="#14B8A6" />
         <Text className="text-gray-600 mt-4">Loading patients...</Text>
       </Screen>
     );
   }
 
-  if (error) {
+  // Show error only if we have no data to display
+  if (error && patients.length === 0) {
     return (
       <Screen className="justify-center items-center px-6">
         <Text className="text-red-600 text-center mb-4">{error}</Text>
@@ -148,7 +175,19 @@ export default function DoctorPatientsScreen() {
       <FlatList
         data={filteredPatientsByWard}
         keyExtractor={(ward) => ward.wardId}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 16,
+          paddingBottom: 16,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#14B8A6"]}
+            tintColor="#14B8A6"
+          />
+        }
         ListHeaderComponent={
           <>
             {/* Title */}
@@ -176,20 +215,20 @@ export default function DoctorPatientsScreen() {
           <View className="mb-4">
             {/* Ward Header - Collapsible */}
             <Pressable
-              className="bg-blue-50 px-4 py-3 rounded-lg border border-blue-200 flex-row justify-between items-center active:bg-blue-100"
+              className="bg-teal-50 px-4 py-3 rounded-lg border border-teal-200 flex-row justify-between items-center active:bg-teal-100"
               onPress={() => toggleWardExpansion(ward.wardId)}
             >
               <View className="flex-1 flex-row items-center">
                 <MaterialIcons
                   name={ward.isExpanded ? "expand-more" : "chevron-right"}
                   size={24}
-                  color="#1E40AF"
+                  color="#0F766E"
                 />
-                <Text className="text-base font-bold text-blue-900 ml-2">
+                <Text className="text-base font-bold text-teal-900 ml-2">
                   {ward.wardName}
                 </Text>
               </View>
-              <Text className="text-xs text-blue-700">
+              <Text className="text-xs text-teal-700">
                 {ward.data.length} patient
                 {ward.data.length !== 1 ? "s" : ""}
               </Text>

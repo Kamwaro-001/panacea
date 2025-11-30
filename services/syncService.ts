@@ -158,6 +158,13 @@ export async function performInitialSync(wardId?: string): Promise<void> {
     console.log(`   Barcodes: ${changes.barcodes.length}`);
     console.log(`   Orders: ${changes.orders.length}`);
     console.log(`   Events: ${changes.events.length}`);
+
+    // Verify wards were written to database
+    const db = getDatabase();
+    const wardCount = await db.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM wards WHERE deleted_at IS NULL"
+    );
+    console.log(`   ✓ Verified ${wardCount?.count || 0} wards in local DB`);
   } catch (error) {
     console.error("❌ Initial sync failed:", error);
     throw error;

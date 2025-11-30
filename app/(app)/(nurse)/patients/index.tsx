@@ -3,12 +3,13 @@ import { Screen } from "@/components/common/Screen";
 import { usePatientStore } from "@/stores/usePatientStore";
 import { useWardStore } from "@/stores/useWardStore";
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   Text,
   TextInput,
   View,
@@ -19,16 +20,47 @@ export default function PatientsScreen() {
   const { patients, isLoading, error, fetchPatientsByWard, clearPatients } =
     usePatientStore();
   const [searchQuery, setSearchQuery] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const lastFetchTime = useRef<number>(0);
+  const lastWardId = useRef<string | null>(null);
+  const REFETCH_THRESHOLD = 30000; // 30 seconds
 
-  useEffect(() => {
-    if (selectedWard?.id) {
-      fetchPatientsByWard(selectedWard.id);
-    } else {
-      // Clear patients if no ward is selected
-      clearPatients();
+  // Load patients when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedWard?.id) {
+        const timeSinceLastFetch = Date.now() - lastFetchTime.current;
+        const wardChanged = lastWardId.current !== selectedWard.id;
+
+        // Fetch if: ward changed OR data is stale OR first time
+        if (
+          wardChanged ||
+          timeSinceLastFetch > REFETCH_THRESHOLD ||
+          lastFetchTime.current === 0
+        ) {
+          fetchPatientsByWard(selectedWard.id);
+          lastFetchTime.current = Date.now();
+          lastWardId.current = selectedWard.id;
+        }
+      } else {
+        clearPatients();
+        lastWardId.current = null;
+      }
+    }, [selectedWard?.id, fetchPatientsByWard, clearPatients])
+  );
+
+  // Pull to refresh handler
+  const onRefresh = useCallback(async () => {
+    if (!selectedWard?.id) return;
+
+    setRefreshing(true);
+    try {
+      await fetchPatientsByWard(selectedWard.id);
+      lastFetchTime.current = Date.now();
+    } finally {
+      setRefreshing(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedWard?.id]);
+  }, [selectedWard?.id, fetchPatientsByWard]);
 
   // Filter patients based on search query
   const filteredPatients = patients.filter(
@@ -60,7 +92,9 @@ export default function PatientsScreen() {
     );
   }
 
-  if (isLoading) {
+  // Only show loading screen if we have no data at all and are loading
+  // This supports offline-first: show cached data immediately even while syncing
+  if (isLoading && patients.length === 0) {
     return (
       <Screen className="justify-center items-center">
         <ActivityIndicator size="large" color="#14B8A6" />
@@ -69,7 +103,8 @@ export default function PatientsScreen() {
     );
   }
 
-  if (error) {
+  // Show error only if we have no data to display
+  if (error && patients.length === 0) {
     return (
       <Screen className="justify-center items-center px-6">
         <Text className="text-red-600 text-center mb-4">{error}</Text>
@@ -83,7 +118,19 @@ export default function PatientsScreen() {
       <FlatList
         data={filteredPatients}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 16,
+          paddingBottom: 16,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#14B8A6"]}
+            tintColor="#14B8A6"
+          />
+        }
         ListHeaderComponent={
           <>
             {/* Ward Name - Centered */}

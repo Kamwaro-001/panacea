@@ -6,7 +6,7 @@ import {
 import { Tabs } from "expo-router";
 
 export default function DoctorLayout() {
-  const tabColor = "#3B82F6"; // Blue color for doctor
+  const tabColor = "#14B8A6";
   return (
     <Tabs
       screenOptions={{

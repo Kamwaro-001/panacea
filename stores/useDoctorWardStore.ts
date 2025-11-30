@@ -20,14 +20,18 @@ export const useDoctorWardStore = create<DoctorWardState>((set, get) => ({
   error: null,
 
   fetchWards: async () => {
+    const currentState = get();
     set({ isLoading: true, error: null });
     try {
+      console.log("🔄 Doctor ward store: Fetching wards...");
       const wards = await getWards();
+      console.log(`✅ Doctor ward store: Fetched ${wards.length} wards`);
       set({ wards, isLoading: false });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to fetch wards";
-      set({ error: errorMessage, isLoading: false });
+      console.error("❌ Doctor ward store: Failed to fetch wards:", error);
+      set({ error: errorMessage, isLoading: false, wards: currentState.wards });
       throw error;
     }
   },

@@ -135,6 +135,7 @@ export async function getAllWardsLocal(): Promise<Ward[]> {
   const rows = await db.getAllAsync<WardRow>(
     "SELECT * FROM wards WHERE deleted_at IS NULL"
   );
+  console.log(`📊 getAllWardsLocal: Found ${rows.length} wards in DB`);
   return rows.map(rowToWard);
 }
 

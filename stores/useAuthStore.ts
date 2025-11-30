@@ -70,15 +70,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           networkMonitorCleanup = initNetworkMonitor(wardId || undefined);
 
           console.log("✅ Session restored");
-        } catch (error) {
+        } catch {
           console.warn("Failed to restore session, token may be expired");
           set({ token: null });
         }
       }
 
       set({ isInitialized: true, isLoading: false });
-    } catch (error) {
-      console.error("Failed to initialize:", error);
+    } catch (err) {
+      console.error("Failed to initialize:", err);
       set({ isInitialized: true, isLoading: false });
     }
   },
@@ -102,9 +102,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Step 5: Check if this is first launch with offline support
       const isFirstLaunch = await isFirstLaunchWithOffline();
+      console.log("🔍 isFirstLaunchWithOffline:", isFirstLaunch);
 
       if (isFirstLaunch) {
         console.log("📥 First launch detected, downloading initial data...");
+        console.log(
+          "📥 Ward ID for initial sync:",
+          wardId || "none (will sync all data)"
+        );
         set({ isInitialSyncing: true });
 
         try {
@@ -122,6 +127,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         } finally {
           set({ isInitialSyncing: false });
         }
+      } else {
+        console.log("ℹ️ Not first launch, skipping initial sync");
       }
 
       // Step 6: Start network monitor for automatic sync

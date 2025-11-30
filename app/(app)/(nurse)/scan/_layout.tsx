@@ -25,6 +25,30 @@ export default function ScanLayout() {
           headerTitleAlign: "center",
         }}
       />
+      <Stack.Screen
+        name="outcome"
+        options={{
+          title: "Select Outcome",
+          headerBackTitle: "Verify",
+          headerTitleAlign: "center",
+        }}
+      />
+      <Stack.Screen
+        name="reason"
+        options={{
+          title: "Reason & Notes",
+          headerBackTitle: "Outcome",
+          headerTitleAlign: "center",
+        }}
+      />
+      <Stack.Screen
+        name="record-final"
+        options={{
+          title: "Record Administration",
+          headerBackTitle: "Reason",
+          headerTitleAlign: "center",
+        }}
+      />
     </Stack>
   );
 }

@@ -23,7 +23,11 @@ export const useOrderStore = create<OrderState>((set) => ({
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to fetch orders";
-      set({ error: errorMessage, isLoading: false, orders: [] });
+      set((state) => ({
+        error: errorMessage,
+        isLoading: false,
+        orders: state.orders,
+      }));
       throw error;
     }
   },

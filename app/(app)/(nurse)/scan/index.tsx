@@ -1,6 +1,7 @@
 import { Button } from "@/components/common/Button";
 import { Screen } from "@/components/common/Screen";
 import { BarcodeError, barcodeService } from "@/services/barcodeService";
+import { useWardStore } from "@/stores/useWardStore";
 import { showAlert, showSimpleAlert } from "@/utils/alert";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
@@ -16,6 +17,7 @@ export default function ScanScreen() {
   // TODO: Remove testing barcode input field and button before production
   const [testBarcodeInput, setTestBarcodeInput] = useState("");
 
+  const { selectedWard } = useWardStore();
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -48,6 +50,29 @@ export default function ScanScreen() {
 
     try {
       const data = await barcodeService.scanBarcode(barcodeString);
+
+      // Validate that the patient belongs to the selected ward
+      if (selectedWard && data.patient.wardId !== selectedWard.id) {
+        // Get ward name for display
+        const patientWardName = data.patient.ward?.name || "a different ward";
+
+        showAlert(
+          "Wrong Ward",
+          `This patient belongs to ${patientWardName}, but you have ${selectedWard.name} selected. Please scan a patient from ${selectedWard.name} or switch to the correct ward.`,
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setError(
+                  `Patient belongs to ${patientWardName}. Please scan a barcode from ${selectedWard.name}.`
+                );
+              },
+            },
+          ]
+        );
+        return;
+      }
+
       // Close camera before navigation
       setIsCameraActive(false);
       // Navigate to verify page with scanned data
@@ -55,6 +80,7 @@ export default function ScanScreen() {
         pathname: "/scan/verify",
         params: {
           data: JSON.stringify(data),
+          barcodeString: barcodeString,
         },
       });
       // Reset test input

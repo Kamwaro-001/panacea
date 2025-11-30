@@ -3,16 +3,15 @@ import { apiClient } from "@/utils/apiClient";
 import NetInfo from "@react-native-community/netinfo";
 import { getDatabase } from "../database";
 import {
-  getPatientsByWardLocal,
   getPatientByIdLocal,
-  rowToPatientProfile,
+  getPatientsByWardLocal,
 } from "../database/helpers";
-import { queueOperation, generateUUID } from "../database/operationQueue";
+import { generateUUID, queueOperation } from "../database/operationQueue";
 import { PatientRow } from "../database/schema";
 
 /**
  * Get patients by ward - offline-first
- * Reads from local database, syncs in background
+ * Reads from local database, syncs with API when online
  */
 export const getPatientsByWard = async (
   wardId: string
@@ -21,29 +20,53 @@ export const getPatientsByWard = async (
     // Always read from local database first
     const localPatients = await getPatientsByWardLocal(wardId);
 
-    // Try to fetch from API in background (don't wait)
+    // Try to sync with API when online
     const networkState = await NetInfo.fetch();
     if (networkState.isConnected) {
-      fetchAndCachePatientsByWard(wardId).catch((err) =>
-        console.warn("Background sync failed:", err)
-      );
+      // If we have no local data, wait for sync to complete (blocking)
+      // This ensures first-time users see data immediately
+      if (localPatients.length === 0) {
+        try {
+          await fetchAndCachePatientsByWard(wardId);
+          // Re-fetch from local DB after sync completes
+          const freshPatients = await getPatientsByWardLocal(wardId);
+          return freshPatients;
+        } catch (syncError) {
+          console.warn("Initial sync failed, returning empty:", syncError);
+          return localPatients; // Return empty array if sync fails
+        }
+      } else {
+        // If we have cached data, sync in background (non-blocking)
+        fetchAndCachePatientsByWard(wardId).catch((err) =>
+          console.warn("Background patients sync failed:", err)
+        );
+        return localPatients;
+      }
     }
 
+    // Offline: return local data
     return localPatients;
   } catch (error) {
     console.error("Failed to get patients from local DB:", error);
-    // Fallback to API if local DB fails
-    const response = await apiClient.get("/patient-profiles", {
-      params: { wardId },
-    });
-    return response.data;
+    // Only if local DB completely fails, try API as last resort
+    try {
+      const response = await apiClient.get("/patient-profiles", {
+        params: { wardId },
+      });
+      return response.data;
+    } catch (apiError) {
+      console.error("API fallback also failed:", apiError);
+      return []; // Return empty array as last resort
+    }
   }
 };
 
 /**
  * Background fetch and cache patients
  */
-async function fetchAndCachePatientsByWard(wardId: string): Promise<void> {
+async function fetchAndCachePatientsByWard(
+  wardId: string
+): Promise<PatientProfile[]> {
   try {
     const response = await apiClient.get("/patient-profiles", {
       params: { wardId },
@@ -73,8 +96,10 @@ async function fetchAndCachePatientsByWard(wardId: string): Promise<void> {
         ]
       );
     }
+    return response.data;
   } catch (error) {
     console.warn("Background fetch failed:", error);
+    return [];
   }
 }
 

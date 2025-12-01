@@ -46,6 +46,72 @@ export default function VerifyAdministrationScreen() {
       return;
     }
 
+    // Validate Blood Pressure format and range
+    const bpMatch = vitals.bp.match(/^(\d+)\/(\d+)$/);
+    if (!bpMatch) {
+      showSimpleAlert(
+        "Invalid Blood Pressure",
+        "Please enter BP in format: systolic/diastolic (e.g., 120/80)"
+      );
+      return;
+    }
+    const systolic = parseInt(bpMatch[1]);
+    const diastolic = parseInt(bpMatch[2]);
+    if (systolic < 70 || systolic > 250) {
+      showSimpleAlert(
+        "Invalid Blood Pressure",
+        "Systolic BP must be between 70 and 250 mmHg"
+      );
+      return;
+    }
+    if (diastolic < 40 || diastolic > 150) {
+      showSimpleAlert(
+        "Invalid Blood Pressure",
+        "Diastolic BP must be between 40 and 150 mmHg"
+      );
+      return;
+    }
+
+    // Validate Heart Rate
+    const hr = parseInt(vitals.hr);
+    if (isNaN(hr) || hr < 30 || hr > 250) {
+      showSimpleAlert(
+        "Invalid Heart Rate",
+        "Heart Rate must be between 30 and 250 bpm"
+      );
+      return;
+    }
+
+    // Validate Temperature
+    const temp = parseFloat(vitals.temp);
+    if (isNaN(temp) || temp < 35.0 || temp > 42.0) {
+      showSimpleAlert(
+        "Invalid Temperature",
+        "Temperature must be between 35.0°C and 42.0°C"
+      );
+      return;
+    }
+
+    // Validate SpO2
+    const spo2 = parseInt(vitals.spo2);
+    if (isNaN(spo2) || spo2 < 70 || spo2 > 100) {
+      showSimpleAlert(
+        "Invalid Oxygen Saturation",
+        "SpO₂ must be between 70% and 100%"
+      );
+      return;
+    }
+
+    // Validate Pain Score
+    const painScore = parseInt(vitals.painScore);
+    if (isNaN(painScore) || painScore < 0 || painScore > 10) {
+      showSimpleAlert(
+        "Invalid Pain Score",
+        "Pain Score must be between 0 and 10"
+      );
+      return;
+    }
+
     // Validate that there are orders to administer
     if (scannedData.activeOrders.length === 0) {
       showSimpleAlert("Error", "No active medication orders to administer");
@@ -151,30 +217,35 @@ export default function VerifyAdministrationScreen() {
                   key: "bp" as keyof VitalsData,
                   placeholder: "120/80",
                   keyboardType: "default" as const,
+                  maxLength: 7,
                 },
                 {
                   label: "Heart Rate (HR)",
                   key: "hr" as keyof VitalsData,
-                  placeholder: "72 bpm",
+                  placeholder: "72",
                   keyboardType: "numeric" as const,
+                  maxLength: 3,
                 },
                 {
                   label: "Temperature (Temp)",
                   key: "temp" as keyof VitalsData,
-                  placeholder: "37.5°C",
+                  placeholder: "37.5",
                   keyboardType: "decimal-pad" as const,
+                  maxLength: 4,
                 },
                 {
                   label: "Oxygen Saturation (SpO₂)",
                   key: "spo2" as keyof VitalsData,
-                  placeholder: "98%",
+                  placeholder: "98",
                   keyboardType: "numeric" as const,
+                  maxLength: 3,
                 },
                 {
                   label: "Pain Score",
                   key: "painScore" as keyof VitalsData,
                   placeholder: "0-10",
                   keyboardType: "numeric" as const,
+                  maxLength: 2,
                 },
               ].map((field) => (
                 <View key={field.key} className="w-1/2 px-2">
@@ -187,6 +258,7 @@ export default function VerifyAdministrationScreen() {
                     }
                     placeholder={field.placeholder}
                     keyboardType={field.keyboardType}
+                    maxLength={field.maxLength}
                     labelClassName="h-10"
                     inputClassName="h-11"
                   />

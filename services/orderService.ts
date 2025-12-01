@@ -6,8 +6,9 @@ import {
   getOrdersByPatientLocal,
   rowToMedicationOrder,
 } from "../database/helpers";
-import { queueOperation, generateUUID } from "../database/operationQueue";
+import { generateUUID, queueOperation } from "../database/operationQueue";
 import { OrderRow } from "../database/schema";
+import { triggerSync } from "../utils/networkMonitor";
 
 /**
  * Get orders by patient - offline-first
@@ -140,10 +141,30 @@ export const createOrder = async (
       ]
     );
 
-    // Queue for sync
-    await queueOperation("create", "order", orderId, orderData);
+    // Queue for sync - include all order fields for proper server sync
+    await queueOperation("create", "order", orderId, {
+      id: orderId,
+      patientId: newOrder.patientId,
+      prescriberId: newOrder.prescriberId,
+      drug: newOrder.drug,
+      dose: newOrder.dose,
+      route: newOrder.route,
+      frequency: newOrder.frequency,
+      startTime: newOrder.startTime.toISOString(),
+      endTime: newOrder.endTime?.toISOString(),
+      status: newOrder.status,
+    });
 
     console.log(`✅ Order created locally: ${orderId}`);
+
+    // Trigger immediate sync if online (non-blocking)
+    const networkState = await NetInfo.fetch();
+    if (networkState.isConnected) {
+      triggerSync().catch((err) =>
+        console.warn("Failed to trigger immediate sync:", err)
+      );
+    }
+
     return newOrder;
   } catch (error) {
     console.error("Failed to create order:", error);
@@ -227,6 +248,15 @@ export const updateOrder = async (
     }
 
     console.log(`✅ Order updated locally: ${orderId}`);
+
+    // Trigger immediate sync if online (non-blocking)
+    const networkState = await NetInfo.fetch();
+    if (networkState.isConnected) {
+      triggerSync().catch((err) =>
+        console.warn("Failed to trigger immediate sync:", err)
+      );
+    }
+
     return rowToMedicationOrder(updated);
   } catch (error) {
     console.error("Failed to update order:", error);

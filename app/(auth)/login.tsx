@@ -25,10 +25,11 @@ export default function LoginScreen() {
 
       // On success, redirect to the (app) group
       router.replace("/(app)");
-    } catch (error) {
+    } catch {
+      // For login errors, always show credential error message
       Alert.alert(
         "Login Failed",
-        error instanceof Error ? error.message : "Invalid Staff ID or PIN."
+        "Invalid Staff ID or PIN combination. Please try again."
       );
     }
   };
@@ -63,6 +64,7 @@ export default function LoginScreen() {
           onChangeText={setPin}
           secureTextEntry
           keyboardType="numeric"
+          maxLength={4}
         />
 
         <View className="mt-6">

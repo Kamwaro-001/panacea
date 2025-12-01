@@ -3,6 +3,7 @@ import { Input } from "@/components/common/Input";
 import { Screen } from "@/components/common/Screen";
 import { PatientInformationCard } from "@/components/patient/PatientInformationCard";
 import { createOrder, stopOrder, updateOrder } from "@/services/orderService";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { useOrderStore } from "@/stores/useOrderStore";
 import { usePatientStore } from "@/stores/usePatientStore";
 import { MedicationOrder } from "@/types";
@@ -29,6 +30,7 @@ import {
 
 export default function DoctorPatientDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuthStore();
   const { selectedPatient, isLoading, error, fetchPatientById } =
     usePatientStore();
   const {
@@ -104,10 +106,10 @@ export default function DoctorPatientDetailScreen() {
           onPress: async () => {
             try {
               await stopOrder(order.id);
-              showAlert("Success", "Medication order stopped successfully");
               if (id) {
-                fetchOrdersByPatient(id);
+                await fetchOrdersByPatient(id);
               }
+              showAlert("Success", "Medication order stopped successfully");
             } catch (error) {
               showAlert(
                 "Error",
@@ -157,10 +159,10 @@ export default function DoctorPatientDetailScreen() {
     setIsSaving(true);
     try {
       await updateOrder(editingOrder.id, formData);
+      await fetchOrdersByPatient(id);
       showAlert("Success", "Medication order updated successfully");
       setShowEditModal(false);
       setEditingOrder(null);
-      fetchOrdersByPatient(id);
     } catch (error) {
       showAlert(
         "Error",
@@ -184,17 +186,23 @@ export default function DoctorPatientDetailScreen() {
       return;
     }
 
+    if (!user?.id) {
+      showAlert("Error", "User not authenticated");
+      return;
+    }
+
     setIsSaving(true);
     try {
       await createOrder({
         patientId: id,
+        prescriberId: user.id,
         ...formData,
         startTime: new Date(),
         status: "active",
       });
+      await fetchOrdersByPatient(id);
       showAlert("Success", "Medication order added successfully");
       setShowAddModal(false);
-      fetchOrdersByPatient(id);
     } catch (error) {
       showAlert(
         "Error",
@@ -443,7 +451,7 @@ export default function DoctorPatientDetailScreen() {
                   placeholder="e.g., BID, TID, QID"
                 />
 
-                <View className="mt-6">
+                <View className="mt-6 mb-8">
                   <Button
                     label="Save"
                     onPress={handleSaveNew}
@@ -518,7 +526,7 @@ export default function DoctorPatientDetailScreen() {
                   placeholder="e.g., BID, TID, QID"
                 />
 
-                <View className="mt-6">
+                <View className="mt-6 mb-8">
                   <Button
                     label="Update"
                     onPress={handleSaveEdit}
